@@ -1,0 +1,374 @@
+<%- include header %>
+<%- include right_user %>
+<%- include left_nav %>
+<%- include flash %>
+<style>
+    .panel {
+        margin-bottom: 0px;
+        margin-top: 0px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+    }
+
+</style>
+<script type="text/javascript" src="/plugins/pickList/pickList.js"></script>
+<link href="/plugins/pickList/pickList.css" rel="stylesheet">
+
+<ol class="breadcrumb">
+    <li class="active">
+        <a type="button" id="btnNav" class="btn btn-default btn-sm  fa fa-dedent"  onclick="navShowHie()"></a>
+        <i class="fa fa-history"></i> <%= title %>
+    </li>
+</ol>
+<div >
+        <ul id="pages" class="pagination" >
+            <li id="whole" class="disabled"><a href='/myrecords?state=0' style='height:30px;line-height:30px;font-size:16px;'>全部</a></li>
+            <li id="own" ><a href="/myrecords?state=1" style='height:30px;line-height:30px;font-size:16px;'>自己</a></li>
+            <li id="sharea" ><a href="/myrecords?state=2" style='height:30px;line-height:30px;font-size:16px;'> 共享</a></li>
+            <li id="sharea1" ><a href="/myrecords?state=3" style='height:30px;line-height:30px;font-size:16px;'> 离线</a></li>
+        </ul>
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var pagecount =  <%= pagecount %>;
+        var pageNow = <%= pageNow %>;
+        var pageSize = <%= pageSize %>;
+        var status = <%= status %>;
+
+        $("#pagesNum").find("option[value='20']").attr("selected", "selected");
+        if (pageSize * pageNow > pagecount) {
+            $("#next").attr("class", "disabled");
+        } else {
+            $("#next").attr("class", "");
+        }
+        if (pageNow > 1) {
+            $("#prev").attr("class", "");
+        } else {
+            $("#prev").attr("class", "disabled");
+        }
+        if(status==0){
+            $("#own").attr("class", "");
+            $("#whole").attr("class", "disabled");
+            $("#sharea").attr("class", "");
+            $("#sharea1").attr("class", "");
+        }
+        if(status==1){
+            $("#own").attr("class", "disabled");
+            $("#whole").attr("class", "");
+            $("#sharea").attr("class", "");
+            $("#sharea1").attr("class", "");
+        }
+        if(status==2){
+            $("#sharea").attr("class", "disabled");
+            $("#whole").attr("class", "");
+            $("#own").attr("class", "");
+            $("#sharea1").attr("class", "");
+        }
+        if(status==3){
+            $("#sharea").attr("class", "");
+            $("#whole").attr("class", "");
+            $("#own").attr("class", "");
+            $("#sharea1").attr("class", "disabled");
+        }
+        //上一页
+        $("#prev").click(function () {
+            if ((Number(pageNow)) > 1) {
+                window.location.href = "/myrecords?pageNow=" + (Number(pageNow) - 1);
+            }
+        });
+        //下一页
+        $("#next").click(function () {
+            if ((Number(pageNow) * pageSize) < pagecount) {
+                window.location.href = "/myrecords?pageNow=" + (Number(pageNow) + 1);
+            }
+        });
+        //手动输入页数
+        $("#currentPage").keypress(function (e) {
+            //当前页
+            if(e.which == 13) {
+                page = $("#currentPage").val();
+                if (Number(page) > 0) {
+                    window.location.href = "/myrecords?pageNow=" + page;
+                }
+            }
+        });
+    });
+    function control(e,o){
+        var pageNum = Math.ceil(<%= pagecount %> / <%= pageSize %>)
+        var v=o.value|0;
+        if(pageNum==0){
+            o.value='1';
+        }else
+        if(v<=0 || v > pageNum){
+            o.value='<%= pageNow %>';
+            o.focus();
+        }
+    };
+
+    var pick;
+    function loadShareData(sn, vid) {
+        $("#share").hide();
+        $("#ts").hide();
+        $("#device_SN").val(sn);
+        $("#vid").val(vid);
+        $.ajax({
+            type: 'GET',
+            url: '/myfriends/records?'+new Date().getTime(),
+            data:{
+                sn:sn,
+                vid:vid
+            },
+            success: function (res) {
+                var json =  $.parseJSON(res);
+                if(pick)
+                    pick.close();
+                if(json.length > 0 ){
+                    $("#share").show();
+                    pick = $("#pickList").pickList({data: json});
+                }else{
+                    $("#ts").show();
+                }
+
+                $('#myModal').modal({backdrop:'true'});
+            },
+            error: function () {
+            }
+        });
+    }
+    function deleteRecord(obj) {
+        var id = getid(obj);
+        var deviceSN = getdeviceSN(obj);
+        $('#delDialog').modal({backdrop: 'true'});
+        $("#delhashed_id").attr("value", id);
+        $("#deldeviceSN").attr("value", deviceSN);
+    }
+    function renameRecord(obj) {
+        var id = getid(obj);
+        $('#rnmDialog').modal({backdrop: 'true'});
+        $("#hashed_id").attr("value", id);
+    }
+
+    function palyRecord(obj) {
+        var id = getid(obj);
+        window.location.href = '/myrecords/' + id;
+    }
+
+    function downRecord(obj) {
+        var hashed_id = getid(obj);
+        $.ajax({
+            url: '/myrecords/download/' + hashed_id,
+            type: 'get',
+            data: {hashed_id: hashed_id},
+            success: function (result) {
+                try {
+                    var elemIF = document.createElement("iframe");
+                    elemIF.src = result.returnValue;
+                    elemIF.style.display = "none";
+                    document.body.appendChild(elemIF);
+                } catch (e) {
+                }
+            }
+        });
+    }
+
+    function getid(obj) {
+        var id = obj.id;
+        id = id.substring(3, 36);
+        return id;
+    }
+    function getid(obj) {
+        var id = obj.id;
+        id = id.substring(3, 36);
+        return id;
+    }
+
+    function getfilename(obj) {
+        var id = obj.id;
+        id = id.substring(36, id.length);
+        return id;
+    }
+    function getdeviceSN(obj) {
+        var id = obj.id;
+        var sn = id.substring(36, id.length);
+        return sn;
+    }
+</script>
+
+<% if (rows) { %>
+<div class="row">
+    <% rows.forEach(function (row) {
+        var time=row.duration;
+        var hour = parseInt(time / 3600);
+        var hour_text=hour=='0'?"":hour+"小时";
+        var minute = parseInt((time - hour * 3600) / 60);
+        var minute_text=minute=='0'?"":minute+"分钟";
+        var second = parseInt((time - hour * 3600) % 60);
+        var second_text=second=='0'?"":second+"秒";
+        var value = hour_text  + minute_text  + second_text;
+    %>
+    <div class="col-md-3 col-sm-12 col-xs-12" style="min-width: 200px;height: 470px;max-width: 300px;">
+        <div class="thumbnail ">
+            <% if (row.photourl) { %>
+            <img src="<%- row.photourl %>" style="height: 123px" alt=""/>
+            <% }else{ %>
+            <img src="<%- "/img/logo2.png" %>" style="height: 123px" />
+            <% } %>
+            <div class="caption">
+                <h6 class="pull-right"><img src="/img/<%- row.deviceType.toLowerCase() %>.png" width="24"></h6>
+                <h5><%- row.accountName %>的
+                    <%- row.deviceName.slice(0, 10) %></h5>
+
+
+                <small class="glyphicon glyphicon-time"> <%- row.created_at %> </small>
+                <br><small class="glyphicon glyphicon-resize-full"> <%- row.size %> </small>
+                <br><small class="glyphicon glyphicon-repeat"> <%- value %> </small>
+                <br><small class="glyphicon glyphicon-floppy-disk"> <%- (row.input_bytes / 1024 / 1024).toFixed(2) %>MB </small>
+                <br><small class="glyphicon glyphicon-edit"> <%- row.remark %> </small>
+                <br/>
+
+            </div>
+            <p class="pull-right"></p>
+
+            <div class="row" style="text-align: center">
+                <div class="col-md-12">
+                    <div class="btn-group btn-group-xs">
+
+                        <a href="/myrecords/<%- row.hashed_id %>" class="btn btn-default btn-xs detailCustom">播放</a>
+                        <% if(row.state == 0){ %>
+                        <a id="nam<%- row.hashed_id + row.file_name %>" class="btn btn-default  btn-xs detailCustom"
+                           onclick="renameRecord(this);">备注</a>
+                        <a id="dow<%- row.hashed_id %>" class="btn btn-default  btn-xs detailCustom"
+                           onclick="downRecord(this);">下载</a>
+
+                                <a class="btn btn-default  btn-xs detailCustom"   onclick="loadShareData('<%- row.deviceSN %>','<%- row.id %>');">共享</a>
+
+
+                        <a id="dow<%- row.hashed_id + row.deviceSN %>" class="btn btn-default  btn-xs detailCustom"
+                           onclick="deleteRecord(this);">删除</a>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% }) %>
+
+</div>
+
+<div>
+    <div class="pagination">
+        <label>每页12条记录,<%= pageNow %>/<%= Math.ceil(pagecount / pageSize)==0?1:Math.ceil(pagecount / pageSize) %> 页，共有记录<%= pagecount %>条</label>
+    </div>
+
+
+    <ul id="pages" class="pagination" style="float:right">
+        <li id='prev' class="disabled"><a href='#' style='height:30px;line-height:30px;font-size:16px;'>上一页</a></li>
+        <li><a  style='height:30px;line-height:30px;font-size:16px;'>
+                <input id='currentPage' type='text' onkeyup="control(event,this)" value="<%= pageNow %>"
+                       style='margin-top:-15px;height:26px;width:35px;text-align:center'/></a></li>
+        <li id='next'><a href='#' style='height:30px;line-height:30px;font-size:16px;'>下一页</a></li>
+    </ul>
+
+</div>
+
+
+<% } %>
+
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4   id="myModalLabel">共享</h4>
+            </div>
+            <form id="addRelFrom" action="/myfriends/recordsShare" class="form-horizontal" method="post">
+                <div class="modal-body">
+                    <div id="pickList"></div>
+                    <div id="ts" class="server-data-content">
+                        暂无好友（好友在“我的好友”页面中添加）
+                    </div>
+                    <br><br>
+                    <input type="hidden" id="device_SN" name="device_SN" value="">
+                    <input type="hidden" id="vid" name="vid" value="">
+                    <input type="hidden" id="pickids" name="pickids" value="">
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                        <button type="submit" id="share" class="btn btn-primary" >确认</button>
+                    </div>
+            </form>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<%- include footer %>
+
+<script type="text/javascript">
+    $(function () {
+        /**
+         * 更改设备名称弹窗居中
+         */
+        $('.modal.fade').on('shown.bs.modal', function(){
+            var $this = $(this);
+            var $modal_dialog = $this.find('.modal-dialog');
+            var m_top = ( $(window).height() - $modal_dialog.height() )/2;
+            $modal_dialog.css({'margin': m_top + 'px auto'});
+        });
+    });
+</script>
+<div class="modal fade" id="rnmDialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">更改备注</h4>
+            </div>
+            <form id="rnmForm" method="post" action="/myrecords/update">
+                <div class="modal-body">
+                    <p><input id="file_name" class="form-control" type="text" name="file_name" value=""
+                              placeholder="备注" aria-describedby="basic-addon1"/></p>
+                    <input type="hidden" id="hashed_id" name="hashed_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="btnRnm">确定</button>
+                </div>
+            </form>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal fade" id="delDialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-label="关闭"><span
+                            aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">提示</h4>
+            </div>
+            <form id="delForm" method="post" action="/myrecords/delete">
+                <div class="modal-body">
+                    <p>您确定删除吗？</p>
+                    <input type="hidden" id="delhashed_id" name="hashed_id">
+                    <input type="hidden" id="deldeviceSN" name="deviceSN">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="btnRnm">确定</button>
+                </div>
+            </form>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div><!-- /.modal -->

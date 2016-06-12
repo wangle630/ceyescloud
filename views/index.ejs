@@ -1,0 +1,81 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+
+<ul class="timeline">
+    <li>
+        <div class="timeline-badge danger"><i class="fa fa-dashboard"></i>
+        </div>
+        <div class="timeline-panel">
+            <div class="timeline-heading">
+                <h4 class="timeline-title" style="color: darkred">管理我的设备</h4>
+            </div>
+            <div class="timeline-body">
+                <p>设备绑定及解绑，配置直播及录像参数，浏览设备基本信息</p>
+                <hr>
+                <a href="/mydevices" type="button" class="btn btn-danger btn-sm">我的设备
+                    <i class="fa fa-dashboard"></i>
+                </a>
+            </div>
+        </div>
+    </li>
+
+    <li class="timeline-inverted">
+        <div class="timeline-badge success"><i class="fa fa-video-camera"></i>
+        </div>
+        <div class="timeline-panel">
+            <div class="timeline-heading">
+                <h4 class="timeline-title" style="color: green">远程指导</h4>
+            </div>
+            <div class="timeline-body">
+                <p>观看及分享直播，向直播端发送文字、语音及标识，寻求指导</p>
+                <hr>
+                <a href="/mylives" type="button" class="btn btn-success btn-sm">可看直播
+                    <i class="fa fa-video-camera"></i>
+                </a>
+            </div>
+        </div>
+    </li>
+
+
+
+    <li>
+        <div class="timeline-badge warning"><i class="fa fa-history"></i>
+        </div>
+        <div class="timeline-panel">
+            <div class="timeline-heading">
+                <h4 class="timeline-title" style="color: orange">管理我的视频</h4>
+            </div>
+            <div class="timeline-body">
+                <p>观看、下载、删除及分享直播文件与本地录像上传的文件</p>
+                <hr>
+                    <a href="/myrecords" type="button" class="btn btn-warning btn-sm">历史纪录
+                        <i class="fa fa-history"></i>
+                    </a>
+
+                </div>
+            </div>
+    </li>
+
+    <li class="timeline-inverted">
+        <div class="timeline-badge info"><i class="fa fa-users"></i>
+        </div>
+        <div class="timeline-panel">
+            <div class="timeline-heading">
+                <h4 class="timeline-title" style="color:#00b3ee">我的好友</h4>
+            </div>
+            <div class="timeline-body">
+                <p>查看好友列表及添加、删除好友</p>
+                <hr>
+                <a href="/myfriends" type="button" class="btn btn-info btn-sm">我的好友
+                    <i class="fa fa-myfriends"></i>
+                </a>
+            </div>
+        </div>
+    </li>
+
+
+
+</ul>
+<%- include footer %>

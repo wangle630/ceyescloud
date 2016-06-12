@@ -1,0 +1,217 @@
+<%- include header %>
+<%- include right_user %>
+<%- include left_nav %>
+<%- include flash %>
+<script type="text/javascript" src="/javascripts/swfobject.js"></script>
+<script type="text/javascript" src="/javascripts/jQuery.js"></script>
+<ul class="breadcrumb">
+    <li class="active">
+        <i class="fa fa-list"></i> <%= title %>
+    </li>
+</ul>
+
+<% if (user) { %>
+<div hidden> <%= user.id %>
+    <hr/>
+</div>
+
+<script type="text/javascript">
+
+    function onSwfInited() {
+        var rtmp = document.getElementById("rtmp-publisher");
+        if (rtmp.isDisableVideo()) {
+            $("#disable_video").attr("checked", true);
+        } else {
+            $("#disable_video").attr("checked", false);
+        }
+        if (rtmp.isDisableAudio()) {
+            $("#disable_audio").attr("checked", true);
+        } else {
+            $("#disable_audio").attr("checked", false);
+        }
+    }
+
+    var flashVars = {
+        width: 640,
+        height: 480,
+        fps: 20,
+        file: '1',
+        /*
+         以下两行为初始化是否禁用音频或视频，如果这里不设置，
+         后面可以通过disableVideo(true/false)来动态设置
+         */
+        disable_video: 'false', /*只有'true'才禁用，其他任何值都是false, 此行省略就是false*/
+        disable_audio: 'false', /*只有'true'才禁用，其他任何值都是false, 此行省略就是false*/
+        on_inited: onSwfInited
+    };
+
+    function onSwfLoaded() {
+    };
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        swfobject.embedSWF("./swf/RtmpPublisher_nginx.swf", "rtmp-publisher", "640", "480", "9.0.0", null, flashVars, null, null, onSwfLoaded);
+    });
+
+    $(document).ready(function () {
+        $("#disable_video").change(function () {
+            var rtmp = document.getElementById("rtmp-publisher");
+            rtmp.disableVideo($(this).prop("checked"));
+        });
+        $("#disable_audio").change(function () {
+            var rtmp = document.getElementById("rtmp-publisher");
+            rtmp.disableAudio($(this).prop("checked"));
+        });
+    });
+
+
+    //call_start true  连接并开始  false 连接
+
+    function connect(call_start) {
+        var rtmp = document.getElementById("rtmp-publisher");
+        if (rtmp.isPublishing()) {
+            rtmp.disconnect();
+            $('#btn').text('开始');
+        } else {
+            var streamer = $('#streamer').val();
+            if ('' == streamer) {
+                alert('请输入推流地址');
+                return;
+            }
+            var user_name = $('#user_name').val();
+            if ('' == user_name) {
+                alert('请输入用户名');
+                return;
+            }
+            var password = $('#password').val();
+            if ('' == user_name) {
+                alert('请输入密码');
+                return;
+            }
+            var service_code = $('#service_code').val();
+            if ('' == service_code) {
+                alert('请输入服务码');
+                return;
+            }
+            var output_tags = $('#output_tags').val();
+            var opaque = $('#opaque').val();
+            if (call_start) {
+                rtmp.start(streamer, user_name, password, service_code, output_tags, opaque);
+            } else {
+                rtmp.connect(streamer, user_name, password, service_code, output_tags, opaque);
+            }
+        }
+    }
+
+    function startPublish() {
+        var rtmp = document.getElementById("rtmp-publisher");
+        rtmp.startPublish();
+    }
+
+    function stopPublish() {
+        var rtmp = document.getElementById("rtmp-publisher");
+        rtmp.stopPublish();
+    }
+
+    function closeRtmp() {
+        var rtmp = document.getElementById("rtmp-publisher");
+        rtmp.disconnect();
+    }
+
+    function rtmpOnConnected(data) {
+        console.log("rtmp connect ok");
+        console.log(data)
+        document.getElementById("btn_connect_start").disabled = true;
+        document.getElementById("btn_connect").disabled = true;
+        document.getElementById("btn_start").disabled = false;
+        document.getElementById("btn_stop").disabled = true;
+        document.getElementById("btn_close").disabled = false;
+    }
+
+    function loseConnection(data) {
+        console.log(data)
+
+        document.getElementById("btn_connect_start").disabled = false;
+        document.getElementById("btn_connect").disabled = false;
+        document.getElementById("btn_start").disabled = true;
+        document.getElementById("btn_stop").disabled = true;
+        document.getElementById("btn_close").disabled = true;
+    }
+
+    function rtmpOnStartPublish() {
+        console.log("rtmp start publish");
+        document.getElementById("btn_start").disabled = true;
+        document.getElementById("btn_stop").disabled = false;
+    }
+
+    function rtmpOnStopPublish() {
+        console.log("rtmp stop publish");
+        document.getElementById("btn_start").disabled = false;
+        document.getElementById("btn_stop").disabled = true;
+    }
+
+    function rtmpOnConnectFail() {
+        console.log("rtmp connect fail");
+        loseConnection();
+    }
+
+    function rtmpOnConnectClosed() {
+        console.log("rtmp connect close");
+        loseConnection();
+    }
+
+    function rtmpOnConnectRejected() {
+        console.log("rtmp connect rejected");
+        loseConnection();
+    }
+
+</script>
+
+<div align="center">
+    <h1>RTMP推流到直播云演示</h1>
+
+    <div>
+        <a href="https://github.com/WoAnTech/zby-rtmp-publisher">本演示的代码仓库</a> | <a
+                href="http://www.zhiboyun.com">直播云网站</a>
+    </div>
+
+    <div id="rtmp-publisher">
+        <p>Flash not installed</p>
+    </div>
+    <div>
+        收流地址：<input type="text" id="streamer" size="51" value='rtmp://xvs-tcp-input.zhiboyun.com/live'></input>
+        <br/>
+        禁用视频<input type="checkbox" id="disable_video"></input> &nbsp;
+        禁用音频<input type="checkbox" id="disable_audio"></input> <br/>
+        用户名：<input type="text" id="user_name" value="" size="6" value=""></input>
+        密码：<input type="text" id="password" value="" size="6" value=""></input>
+        服务码: <input type="text" id="service_code" value="" size="12" value=""></input>
+        输出标签: <input type="text" id="output_tags" size="12" value=""></input> <br/> <br/>
+        透传字串: <textarea id="opaque" cols="39" value=""></textarea> <br/> <br/>
+
+        <div>
+            <button onclick="connect(true);" id="btn_connect_start">连接并开始</button>
+            <button onclick="connect(false);" id="btn_connect">连接</button>
+            <button onclick="startPublish();" disabled id="btn_start">开始推送</button>
+            <button onclick="stopPublish();" disabled id="btn_stop">停止推送</button>
+            <button onclick="closeRtmp();" disabled id="btn_close">关闭</button>
+        </div>
+    </div>
+</div>
+
+
+<% } %>
+<%- include footer %>
+
+<!--某个任务的详细信息-->
+<!--{-->
+<!--"function": "list_task_cdr",-->
+<!--"params": {-->
+<!--"service_code": "NENNZAXZ",-->
+<!--"fields": "id, task_id, time, input_bytes, http_output_bytes, task_json",-->
+<!--"page_index": 0,-->
+<!--"per_page":10,-->
+<!--"time_from": "2016-04-01",-->
+<!--"time_to": "2016-04-12",-->
+<!--"order": "time desc"-->
+<!--}-->
+<!--}-->

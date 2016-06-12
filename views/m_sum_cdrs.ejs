@@ -1,0 +1,193 @@
+<%- include header %>
+<%- include right_user %>
+<%- include left_nav %>
+<%- include flash %>
+<script type="text/javascript" src="/javascripts/hmac-sha256.js"></script>
+<script type="text/javascript" src="/javascripts/jQuery.js"></script>
+<ul class="breadcrumb">
+    <li class="active">
+        <i class="fa fa-list"></i> <%= title %>
+    </li>
+</ul>
+
+<script>
+    /**
+     * 时间对象的格式化;
+     */
+    Date.prototype.format = function (format) {
+        /*
+         * eg:format="yyyy-MM-dd hh:mm:ss";
+         */
+        var o = {
+            "M+": this.getMonth() + 1, // month
+            "d+": this.getDate(), // day
+            "h+": this.getHours(), // hour
+            "m+": this.getMinutes(), // minute
+            "s+": this.getSeconds(), // second
+            "q+": Math.floor((this.getMonth() + 3) / 3), // quarter
+            "S": this.getMilliseconds()
+            // millisecond
+        }
+        if (/(y+)/.test(format)) {
+            format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4
+                    - RegExp.$1.length));
+        }
+
+        for (var k in o) {
+            if (new RegExp("(" + k + ")").test(format)) {
+                format = format.replace(RegExp.$1, RegExp.$1.length == 1
+                        ? o[k]
+                        : ("00" + o[k]).substr(("" + o[k]).length));
+            }
+        }
+        return format;
+    }
+
+    function make_signature(uri, query_string, now, key) {
+        var data = uri + query_string + now;
+        return CryptoJS.HmacSHA256(data, key);
+    }
+
+    $(document).ready(function () {
+
+        $("#btn_call").click(function () {
+            var address = $("#txt_address").val();
+            if ("" == address) {
+                alert("接口地址不可以为空");
+                return;
+            }
+            if (!/^http\:\/\/.{3,}/gi.test(address)) {
+                alert('主机地址不合法，必须以http://开头');
+                return;
+            }
+            var uri = $("#txt_uri").val();
+            if ("" == uri) {
+                alert("接口路径不可以为空");
+                return;
+            }
+            var key = $("#txt_key").val();
+            if ("" == key) {
+                alert("共享密钥不可以为空");
+                return;
+            }
+            var query_string = "service_code=" + $("#txt_service_code").val();
+            var data = $("#txt_input_params").val();
+            var now = new Date().getTime();
+            var signature = make_signature(uri, query_string + data, now, key);
+            $("#txt_output_result").val('');
+            $.ajax({
+                url: address + uri + "?" + query_string,
+                type: "POST",
+                headers: {"xvs-timestamp": now, "xvs-signature": signature},
+                data: data,
+                crossDomain: true,
+                dataType: "json",
+                success: function (json_data) {
+//                    $("#txt_output_result").val(JSON.stringify(json_data));
+                    console.log(json_data)
+                    showDetail(json_data);
+                    $("#label_res").text("API返回结果 (时间戳: " + now + ")");
+                },
+                error: function (err) {
+                    $("#txt_output_result").val("API调用失败, 错误信息： \n" + JSON.stringify(err));
+                }
+            });
+        });
+
+    });
+
+    function showDetail(cdrsData) {
+        $("#txt_output_result").val('HTTP协议输出的所有流量: ' + ((cdrsData.http_bytes_sent) / (1024 * 1024)).toFixed(2) + ' MB'
+                + '\r\n' + 'HTTP协议输出的所有流量: ' + ((cdrsData.rtmp_bytes_sent) / (1024 * 1024)).toFixed(2) + ' MB'
+                + '\r\n' + 'HTTP请求计数: ' + cdrsData.http_request_count
+                + '\r\n' + '直播时长总计: ' + cdrsData.duration + ' s'
+                + '\r\n' + '任务计数: ' + cdrsData.task_count
+                + '\r\n' + 'sd240分辨率转码时长: ' + cdrsData.duration_sd240 + ' s'
+                + '\r\n' + 'sd480分辨率转码时长: ' + cdrsData.duration_sd480 + ' s'
+                + '\r\n' + 'sd720分辨率转码时长: ' + cdrsData.duration_sd720 + ' s'
+                + '\r\n' + 'HD分辨率转码时长: ' + cdrsData.duration_hd + ' s'
+                + '\r\n' + 'sd240分辨率copy模式封装时长: ' + cdrsData.duration_sd240_copy + ' s'
+                + '\r\n' + 'sd480分辨率copy模式封装时长: ' + cdrsData.duration_sd480_copy + ' s'
+                + '\r\n' + 'sd720分辨率copy模式封装时长: ' + cdrsData.duration_sd720_copy + ' s'
+                + '\r\n' + 'HD分辨率copy模式封装时长: ' + cdrsData.duration_hd_copy + ' s'
+                + '\r\n' + '总计使用存储大小: ' + ((cdrsData.file_size) / (1024 * 1024)).toFixed(2) + ' MB'
+                + '\r\n' + '总计存储的音视频和图片数量: ' + cdrsData.file_num + ' s'
+                + '\r\n' + 'API调用次数统计: ' + cdrsData.api_call_count);
+    }
+
+
+</script>
+
+
+<% if (user) { %>
+<div hidden> <%= user.id %>
+    <hr/>
+</div>
+<hr/>
+<strong><h3>消费明细查询</h3></strong>
+
+<div class="col-md-12">
+    <div class="col-md-6">
+        <div class="row-fluid">
+            <div class="span1">
+                <label>服务码</label>
+                <input type="service_code" class="form-control" id="txt_service_code" value="NENNZAXZ"></input>
+            </div>
+            <div class="span2">
+                <label>接口密钥</label>
+                <input type="password" class="form-control" id="txt_key" value="8bdf9897"></input>
+            </div>
+            <div class="span2">
+                <label>接口主机地址</label>
+                <input type="text" id="txt_address" class="form-control" value="http://c.zhiboyun.com"></input>
+            </div>
+            <div class="span3">
+                <label>接口路径</label>
+                <input type="text" id="txt_uri" class="form-control" value="/api/20140928/management"></input>
+            </div>
+        </div>
+        <div class="span">
+            <label>接口调用参数</label>
+            <textarea class="form-control" id="txt_input_params" rows="10">{
+    "function": "sum_cdrs",
+    "params": {
+        "service_code": "NENNZAXZ",
+        "time_from": "2016-04-01",
+        "time_to": "2016-04-10"
+    }
+
+}</textarea>
+            <span class="help-block">请在上面输入框输入JSON格式的参数</span>
+            <button id="btn_call" class="btn btn-primary">提交</button>
+        </div>
+    </div>
+
+
+    <div class="col-md-6">
+
+        <div class="span">
+            <label id="label_res">API返回结果</label>
+            <textarea class="form-control" id="txt_output_result" readonly="true" style="width:90%"
+                      rows="25"></textarea>
+        </div>
+        <div id="label_err"></div>
+    </div>
+</div>
+
+<hr/>
+<% } %>
+<%- include footer %>
+
+<!--某个任务的详细信息-->
+<!--{-->
+<!--"function": "list_task_cdr",-->
+<!--"params": {-->
+<!--"service_code": "NENNZAXZ",-->
+<!--"fields": "id, task_id, time, input_bytes, http_output_bytes, task_json",-->
+<!--"page_index": 0,-->
+<!--"per_page":10,-->
+<!--"time_from": "2016-04-01",-->
+<!--"time_to": "2016-04-12",-->
+<!--"order": "time desc"-->
+<!--}-->
+<!--}-->

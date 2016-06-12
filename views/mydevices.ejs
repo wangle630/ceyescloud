@@ -1,0 +1,411 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+<script type="text/javascript" src="/javascripts/validForm/Validform_v5.3.2_min.js"></script>
+<script type="text/javascript" src="/javascripts/devices/qrcode.js"></script>
+<link href="/icheck/css/flat/blue.css" rel="stylesheet">
+<script src="/icheck/js/icheck.js?v=1.0.2"></script>
+<ol class="breadcrumb">
+    <li class="active">
+        <a type="button" id="btnNav" class="btn btn-default btn-sm  fa fa-dedent"  onclick="navShowHie()"></a>
+        <i class="fa fa-dashboard"></i>  <%= title %>
+    </li>
+</ol>
+<!--效果html开始-->
+<div id="wrapper">
+    <div class="box">
+        <div class="demo">
+            <a href="javascript:" id="bindDevice" class="demo7 btn btn-primary  btn-detailCustom">绑定设备</a>
+            <a href="javascript:" id="connWIFI" class="demo7 btn btn-primary  btn-detailCustom">连接WIFI</a>
+            <a href="javascript:" id="bindConn" class="demo7 btn btn-primary  btn-detailCustom">绑定设备并连接WIFI</a>
+        </div>
+    </div><!-- box end -->
+</div><!-- wrapper end -->
+<div class="col-md-13">
+    <br />
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+            <thead >
+            <th>类型</th>
+            <th>设备类型</th>
+            <th>设备名称</th>
+            <th>设备编号</th>
+            <th>已用空间/总共空间(M)</th>
+            <th>可用状态</th>
+            <th>操作</th>
+            </thead>
+            <tbody>
+            <% if (rows) { %>
+            <% rows.forEach(function (row) { %>
+            <div>
+                <tr>
+                    <th><img src="/img/<%- row.deviceType %>.png"  width="26"></th>
+                    <th><%- row.deviceType %></th>
+                    <th><%- row.deviceName %></th>
+                    <th><%- row.deviceSN %></th>
+                    <th><%- row.useStorage %>/<%- row.totalStorage %></th>
+                    <th><%- row.enable=="Yes"?"可用":"不可用" %></th>
+                    <th>
+                        <a href="/mydevices/conf/<%- row.id  %>" class="btn btn-success btn-circle" ><i class="fa fa-gear"></i></a> |
+                        <a class="btn btn-danger btn-circle" id="del<%- row.deviceSN  %>" onclick="unbindDevice(this)" ><i class="fa fa-times"></i></a> |
+                        <a data-toggle="modal" data-target="rnmDialog" class="btn btn-info btn-circle" id="rnm<%- row.id  %>" onclick="renameDevice(this)"><i class="fa fa-edit"></i></a>|
+                        <a data-toggle="modal" data-target="#myModal" class="btn btn-info btn-circle" id="dtl<%- row.id  %>" onclick="detailInfo(this)" ><i class="fa fa-th-list"></i></a>
+                    </th>
+                </tr>
+            </div>
+            <% }) %>
+            <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<%- include footer %>
+<script>
+    $(document).ready(function(){
+        $('input').iCheck({
+            checkboxClass: 'icheckbox_flat-blue'
+        });
+    });
+    $.ajaxSetup({
+        cache: false
+    });
+</script>
+<script  type="text/javascript">
+    $(function(){
+
+        $('[data-toggle="tooltip"]').tooltip()
+        $(".registerform:last").Validform();
+        $('#connWIFI').click(function(){
+            $('#divWarning').hide();
+            $('#wifiDialog').modal({backdrop:'true'});
+        });
+        $('#bindConn').click(function(){
+            $('#BCdivWarning').hide();
+            $('#divBindConn').modal({backdrop:'true'});
+        });
+        $('#bindDevice').click(function(){
+            $('#qrcodeBind').empty();
+            $.ajax({
+                url: '/mydevices/bind_qrcode',
+                type: 'GET',
+                success: function(result) {
+                    var img='<img id="imgBind" style="height: 256px;width: 256px;vertical-align: middle;"  src="'+result+'" />';
+                    $("#qrcodeBind").empty();
+                    $("#qrcodeBind").append(img);
+                    $('#bindDialog').modal({backdrop:'true'});
+                }
+            });
+        });
+
+        $('#wifiCryto').change(function () {
+            if($('#wifiCryto').val()==1){
+                $("#wifiPwd").val("");
+                $("#wifiPwd").attr("disabled","disabled");
+            }else{
+                $("#wifiPwd").removeAttr("disabled");
+            }
+        });
+        $('#BCwifiCryto').change(function () {
+            if($('#wifiCryto').val()==1){
+                $("#wifiPwd").val("");
+                $("#wifiPwd").attr("disabled","disabled");
+            }else{
+                $("#wifiPwd").removeAttr("disabled");
+            }
+        });
+
+        $('#btnBindConn').click(function() {
+            if((!$('#ckbConn').is(':checked'))&&(!$('#ckbBind').is(':checked'))) {
+                $("#BCdivWarning").html("请勾选绑定设备或连接WIFI");
+                $('#BCdivWarning').show();
+                return;
+            }
+            $("#BCdivWarning").hide();
+            if($('#ckbConn').is(':checked')||$('#ckbBind').is(':checked')) {
+                var type="";
+                if ($('#ckbConn').is(':checked')) {
+                    var ssid = $('#BCwifiSSid').val();
+                    var pwd = $('#BCwifiPwd').val();
+                    var wifiCryto = $('#BCwifiCryto').val();
+                    if (ssid == null || ssid.length <= 0) {
+                        $("#BCdivWarning").html("请输入WIFI名称");
+                        $('#BCdivWarning').show();
+                        return;
+                    }
+                    if ($('#BCwifiCryto').val() != 1) {
+                        if (pwd == null || pwd.length <= 0) {
+                            $("#BCdivWarning").html("请输入WIFI密码");
+                            $('#BCdivWarning').show();
+                            return;
+                        }
+                    }
+                    type+="W";
+                }
+                if($('#ckbBind').is(':checked')){
+                    type+="B";
+                }
+                $.ajax({
+                    url: '/mydevices/bind_wifi_qrcode',
+                    type: 'GET',
+                    data: {ssid:ssid,pwd:pwd,wifiCryto:wifiCryto,type:type},
+                    success: function(result) {
+                        var img='<img id="imgBC" style="height: 256px;width: 256px;"  src="'+result+'" />';
+                        $("#BCqrcode").empty();
+                        $("#BCqrcode").append(img);
+                    }
+                });
+            }
+        });
+        //提交并验证表单
+        $('#btnConnWifi').click(function() {
+            var ssid=$('#wifiSSid').val();
+            var pwd=$('#wifiPwd').val();
+            var wifiCryto=$('#wifiCryto').val();
+            if(ssid==null||ssid.length<=0){
+                $("#divWarning").html("请输入WIFI名称");
+                $('#divWarning').show();
+                return;
+            }
+            if($('#wifiCryto').val()!=1) {
+                if (pwd == null || pwd.length <= 0) {
+                    $("#divWarning").html("请输入WIFI密码");
+                    $('#divWarning').show();
+                    return;
+                }
+            }
+            $.ajax({
+                url: '/mydevices/wifi_qrcode',
+                type: 'GET',
+                data: {ssid:ssid,pwd:pwd,wifiCryto:wifiCryto},
+                success: function(result) {
+                    var img='<img id="imgWifi" style="height: 256px;width: 256px;"  src="'+result+'" />';
+                    $("#qrcodeWIFI").empty();
+                    $("#qrcodeWIFI").append(img);
+                }
+            });
+        });
+        /**
+         * 更改设备名称弹窗居中
+         */
+        $('.modal.fade').on('shown.bs.modal', function(){
+            var $this = $(this);
+            var $modal_dialog = $this.find('.modal-dialog');
+            var m_top = ( $(window).height() - $modal_dialog.height() )/2;
+            $modal_dialog.css({'margin': m_top + 'px auto'});
+        });
+    });
+    function detailInfo(obj){
+        var id = getid(obj);
+        $.ajax({
+            url:'/mydevices/detail/' + id,//你后台服务接口
+            success:function(res){//res台返回的数据，视情况看是否需要加个下
+                var json = $.parseJSON(res);
+                var str = '';
+                for(var key in json){
+                    var keyname ;
+                    if(key=='rom_v'){
+                        keyname ='ROM版本';
+                    }else if(key=='os_type'){
+                        keyname ='操作系统';
+                    }else if(key=='os_v'){
+                        keyname ='系统版本';
+                    }else if(key=='software_v'){
+                        keyname ='软件版本';
+                    }else if(key=='gps'){
+                        keyname ='坐标';
+                    }else if(key=='storage_size'){
+                        keyname ='存储总量';
+                    }else if(key=='storage_available'){
+                        keyname ='可用空间';
+                    }else if(key=='modelName'){
+                        keyname='型号';
+                    }
+                    else if(key=='uploadTime'){
+                        keyname='上传时间';
+                    }else{
+                        keyname='';
+                    }
+                    if(keyname != ''){
+                        str = str +"<p class='list-group-item-text'><label>"+ keyname + '</label> : ' + json[key] +"</p>";
+                    }
+                }
+
+
+                $('div.server-data-content').html('<div class="list-group" ><p>'+str+'</p></div>');
+            },
+            error:function(error){
+                alert(error);
+            }
+        });
+    }
+    function setrad(){
+        $("#ssnn").val(randomString(10));
+    }
+    function randomString(len) {
+        len = len || 32;
+        var $chars = 'ABCDEFGHJKLMNOPQRSTWXYZabcdefghijkmnopqrstwxyz1234567890';
+        var maxPos = $chars.length;
+        var pwd = '';
+        for (i = 0; i < len; i++) {
+            pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+        }
+        return pwd;
+    };
+    function unbindDevice(obj){
+        var id = getid(obj);
+        $('#delDialog').modal({backdrop:'true'});
+        $('#delForm').attr('action','/mydevices/unbind/'+id);
+    }
+    function renameDevice(obj){
+        var id=getid(obj);
+        $("#deviceID").attr("value",id);
+        $("#rnmForm").attr("action",'/mydevices/rename');
+        $('#rnmDialog').modal({backdrop:'true'});
+    };
+    function getid(obj){
+        var id=obj.id;
+        id=id.substring(3,id.length);
+        return id;
+    }
+</script>
+<div class="modal fade" id="divBindConn"  >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">绑定设备并连接WIFI</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert" hidden id="BCdivWarning"></div>
+                <div class="well">
+                    <div class="icheckbox_square-blue">
+                        <input tabindex="9" type="checkbox" id="ckbBind" checked/>
+                        <label for="square-checkbox-1">绑定设备</label>
+                        <input tabindex="9" type="checkbox" id="ckbConn" checked/>
+                        <label for="square-checkbox-1">连接WIFI</label>
+                    </div>
+                    <div id="wifiDiv">
+                        <p><input id="BCwifiSSid" class="form-control"  type="text" name="wifiSSid" value="" placeholder="WIFI名称"  aria-describedby="basic-addon1" data-toggle="tooltip" data-placement="top" title="如需连接WIFI,请填写WIFI名称"/></p>
+                        <p><input   id="BCwifiPwd" class="form-control"  type="password" name="wifiPwd" value="" placeholder="WIFI密码" aria-describedby="basic-addon1" data-toggle="tooltip" data-placement="top" title="如需连接WIFI,请填写WIFI密码"/></p>
+                        <p>
+                            <select id="BCwifiCryto"  class="form-control" data-toggle="tooltip" data-placement="top" title="如需连接WIFI,请选择加密方式">
+                                <option value="3">WPA</option>
+                                <option value="2">WEP</option>
+                                <option value="1">NOPASS</option>
+                            </select>
+                        </p>
+                    </div>
+                </div>
+                <div id="BCqrcode" style="width: 256px;height: 256px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="submit" class="btn btn-primary" id="btnBindConn">生成二维码</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="wifiDialog" >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">连接WIFI</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert" hidden id="divWarning"></div>
+                <div id="wifiDiv"   >
+                    <p><input id="wifiSSid" class="form-control"  type="text" name="wifiSSid" value="" placeholder="WIFI名称"  aria-describedby="basic-addon1" data-toggle="tooltip" data-placement="top" title="请填写WIFI名称"/></p>
+                    <p><input   id="wifiPwd" class="form-control"  type="password" name="wifiPwd" value="" placeholder="WIFI密码" aria-describedby="basic-addon1" data-toggle="tooltip" data-placement="top" title="请填写WIFI密码"/></p>
+                    <p>
+                        <select id="wifiCryto"  class="form-control" aria-describedby="basic-addon1" data-toggle="tooltip" data-placement="top" title="请选择WIFI加密类型">
+                            <option value="3">WPA</option>
+                            <option value="2">WEP</option>
+                            <option value="1">无密码</option>
+                        </select>
+                    </p>
+                    <div id="qrcodeWIFI" style="width: 256px;height: 256px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnConnWifi">生成二维码</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" style="height: auto" aria-labelledby="myModalLabel"  aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4   id="myModalLabel">详细信息</h4>
+            </div>
+            <div class="server-data-content">
+                获取详细数据失败
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="rnmDialog" >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">更改名称</h4>
+            </div>
+            <form id="rnmForm" method="post">
+                <div class="modal-body">
+                    <p><input id="deviceName" class="form-control"  type="text" name="deviceName" value="" placeholder="设备名称" aria-describedby="basic-addon1" /></p>
+                    <input type="hidden" id="deviceID" name="deviceID">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="btnRnm">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="delDialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">提示</h4>
+            </div>
+            <form id="delForm" method="post">
+                <div class="modal-body">
+                    <p>您确定解绑此设备吗？</p>
+                    <input type="hidden" id="deviceSN" name="deviceSN">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="btnRnm">确定</button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="bindDialog"  >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">绑定设备</h4>
+            </div>
+            <div class="modal-body">
+                <div id="qrcodeBind"  />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>

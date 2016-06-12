@@ -1,0 +1,116 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+
+<ol class="breadcrumb">
+    <li class="active">
+        <a type="button" id="btnNav" class="btn btn-default btn-sm  fa fa-dedent"  onclick="navShowHie()"></a>
+        <a href="/myrecords"><i class="fa fa-history"></i>  历史记录 </a>/
+        <i class="fa fa-play-circle-o"></i>  <%= title %>
+    </li>
+</ol>
+
+
+<div class="row">
+<div class = "col-md-12">
+
+<% if (returnValue) {
+    var time=returnValue.duration;
+    var hour = parseInt(time / 3600);
+    var hour_text=hour=='0'?"":hour+"小时";
+    var minute = parseInt((time - hour * 3600) / 60);
+    var minute_text=minute=='0'?"":minute+"分钟";
+    var second = parseInt((time - hour * 3600) % 60);
+    var second_text=second=='0'?"":second+"秒";
+    var value = hour_text  + minute_text  + second_text;
+%>
+    <row>
+    <div class="col-md-12 col-sm-12 col-xs-12 col-lg-12 embed-responsive embed-responsive-16by9 ">
+        <video class="embed-responsive-item"  id="video1" src="<%= returnValue.url %>" type='video/mp4' controls autoplay></video></div>
+    </row>
+    <row>
+        <div>
+        <p   id="userid" >设备：<%- returnValue.author %></p>
+    <p     id="file_name" >文件备注：<%- returnValue.file_name %></p>
+    <p   id="size" >视频分辨率：<%- returnValue.size %></p>
+    <p   id="duration" >视频时长：<%- value %></p>
+    <p   id="created_at" >录制时间：<%- returnValue.created_at %></p>
+    <p   id="finished_at" >结束时间：<%- returnValue.finished_at %></p>
+    <p   id="input_bytes" >文件大小：<%- (returnValue.input_bytes/1024/1024).toFixed(2) %>MB </p>
+    </div>
+    </row>
+<% } %>
+</div>
+</div>
+<script type="text/javascript">
+    document.getElementById('randomid').innerHTML=randomString(32);
+    timeId = setInterval("playlog();",4000);
+    myVid=document.getElementById("video1");
+    function getPlayedRange()
+    {
+        {
+            var palyedRange = 0;
+            for(var i = 0; i<myVid.played.length ; i++ ){
+                //alert(i +  "Start: " + myVid.played.start(i) + " End: "  + myVid.played.end(i));
+                palyedRange = myVid.played.end(i) - myVid.played.start(i) + palyedRange;
+            }
+            //alert(palyedRange)
+            return palyedRange.toFixed(2);
+        }
+    }
+
+    function getMyName(){
+        userid = $('#userid').html();
+        return userid;
+    }
+
+    function playlog(){
+        var accoundid=$('#userid').html();
+        var hashed_id=$('#recordid').html();
+        var randomid=$('#randomid').html();
+        var size=$('#size').html();
+        var duration=$('#duration').html();
+        var palyedRange = getPlayedRange();
+        var buffRange = getBuffRange();
+        $.ajax({
+            url: '/myrecords/playlog/'+hashed_id,
+            type: 'post',
+            data: {
+                accoundid:accoundid,
+                hashed_id:hashed_id,
+                size:size,
+                duration:duration,
+                randomid:randomid,
+                palyedRange:palyedRange,
+                buffRange:buffRange
+            },
+            success: function(result) {
+            }
+        });
+    }
+
+    function randomString(len) {
+        len = len || 32;
+        var $chars = 'ABCDEFGHJKLMNOPQRSTWXYZabcdefghijkmnopqrstwxyz1234567890';
+        var maxPos = $chars.length;
+        var pwd = '';
+        for (i = 0; i < len; i++) {
+            pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+        }
+        return pwd;
+    };
+
+    function getBuffRange()
+    {
+        var buffRange = 0;
+        for(var i = 0; i<myVid.buffered.length ; i++ ){
+            //alert(i +  "Start: " + myVid.buffered.start(i) + " End: "  + myVid.buffered.end(i));
+            buffRange = myVid.buffered.end(i) - myVid.buffered.start(i) + buffRange;
+        }
+        return buffRange.toFixed(2);
+    }
+
+</script>
+
+<%- include footer %>

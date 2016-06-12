@@ -1,0 +1,2 @@
+forever start -a -l forever.log -o out.log -e err.log bin/www db_ip=123.56.234.200 db_user=admin db_password=admin123 db_database=remote_guide db_port=3406 SERVICE_CODE=NENNZAXZ API_KEY=8bdf9897 redis_port=6379 locate=127.0.0.1 BASE_URL=http://c.zhiboyun.com uri_txt=/api/20140928/send_txt_msg uri_audio=/api/20140928/send_audio_msg uri_task=/api/20140928/task_list uri_rtmp=xvs-5.zhiboyun.com reg_switch=false download_link=http://pan.baidu.com/s/1dFDIo9b
+

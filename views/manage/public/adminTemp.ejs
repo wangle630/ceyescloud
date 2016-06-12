@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>管理平台</title>
+	<link rel="shortcut icon" href="/favicon.png" type="image/x-icon"/>
+    <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
+    <!-- Bootstrap 3.3.2 -->
+    <link href="/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+	
+    <!-- Theme style -->
+    <link href="/stylesheets/backstage/css/AdminLTE.min.css" rel="stylesheet" type="text/css" />
+
+    <link href="/stylesheets/backstage/css/skins/skin-blue.min.css" rel="stylesheet" type="text/css" />
+	
+
+    
+    <!--jquery-->
+    <script src="/javascripts/jquery.min.js" type="text/javascript"></script>
+    <!--zTree树形组件-->
+    <link rel="stylesheet" href="/plugins/ztree/css/zTreeStyle/zTreeStyle.css" type="text/css">
+    <script type="text/javascript" src="/plugins/ztree/js/jquery.ztree.all-3.5.js"></script>
+	
+    <!-- Font Awesome Icons -->
+    <link href="/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+	<!-- Bootstrap 3.3.2 JS -->
+	<script src="/javascripts/bootstrap.min.js" type="text/javascript"></script>
+	<script src="/javascripts/jquery.cookie.js" type="text/javascript"></script>
+	<!-- AdminLTE App -->
+	<script src="/javascripts/backstage/app.min.js" type="text/javascript"></script>
+	<script src="/javascripts/logic/menu.js" type="text/javascript"></script>
+	<script src="/javascripts/bootstrap-treeview.js"></script>
+	<style>
+	
+
+	</style>
+	<script type="text/javascript">
+	//获取菜单信息
+	function getMenu(){
+		var sessionID = $.cookie('sessionID');
+		$.ajax({
+        	type:'GET',
+        	url:'/p/Functions/Menu',
+        	dataType:'json',
+			headers:{
+				'Authorization':''+sessionID,
+			},
+        	success:function(data){
+				var returnData = "";
+				// returnData = returnData + '<section class="sidebar" >';
+				// returnData = returnData+'<ul class="sidebar-menu">'
+				// returnData = returnData+'<li class="treeview active">'
+				// returnData = returnData+ '<a ><span><i class="fa fa-user fa-fw"></i>客户管理</span> <i class="fa fa-angle-left pull-right"></i></a>'
+				// //returnData = returnData+ '<a href="/p/custom"> 客户基本信息管理</a>'
+				// returnData = returnData+ '<ul class="treeview-menu"> '
+				// returnData = returnData+ '<li><a src="/p/custom" class="clickMenu"> 客户基本信息管理</a></li>'
+				// returnData = returnData+ '<li><a src="/p/domain" class="clickMenu"> 客户域管理</a></li>'
+				// returnData = returnData+ '</ul>'
+				// returnData = returnData+ '</li>'
+				// returnData = returnData+ '</ul>'
+				// returnData = returnData+ '</section>'
+				// //console.log(returnData)
+				$("#menu").empty()
+				$("#menu").html(returnData)
+				$("#menu").show()
+				$(".clickMenu").click(function(){
+					path = $(this).attr("src")
+					$.get(path,null,function(data){
+						$("#content").html(data)
+					});
+				});
+			},
+        	error:function(){//请求失败
+				console.log('error')
+        	}
+       	});
+	}
+	
+
+	//菜单选中
+	function menuSelc(){
+		$(".clickMenu").click(function(){
+			path = $(this).attr("src")
+			$.get(path,null,function(data){
+				$("#content").html(data)
+			});
+		});
+	}
+	$(document).ready(function(){
+		menuSelc()
+	//$("#menu").hide();
+		//getMenu();
+		//$.get("/p/custom",null,function(data){
+
+		//			$("#content").html(data)
+
+		//});
+		//menuSelc();
+		
+	});
+	
+	</script>
+	<!--数据绑定-->
+</head>
+
+<body class="skin-blue" ng-app="adminApp">
+
+<div class="wrapper">
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <!-- Logo -->
+        <a href="/admin/manage" class="logo"><b>云视智通</b>直播云</a>
+
+        <!-- Header Navbar -->
+        <nav class="navbar navbar-static-top" role="navigation">
+            <!-- Sidebar toggle button-->
+            <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+                <span class="sr-only">Toggle navigation</span>
+            </a>
+			<ul class="nav navbar-top-links navbar-right">
+                <!-- /.dropdown -->
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <li><a a src="/p/dashboard" class="clickMenu"><i class="fa fa-user fa-fw"></i> 个人信息</a>
+                        </li>
+                        <!--<li><a href="#"><i class="fa fa-gear fa-fw"></i> 设置</a>
+                        </li>
+                        <li class="divider"></li>-->
+                        <li><a href="/p"><i class="fa fa-sign-out fa-fw"></i> 注销</a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-user -->
+                </li>
+                <!-- /.dropdown -->
+            </ul>
+        </nav>
+    </header>
+    <!-- Left side column. contains the logo and sidebar -->
+    <aside class="main-sidebar" id="menu">
+
+        <!-- sidebar: style can be found in sidebar.less -->
+        <section class="sidebar" >
+            <!-- Sidebar Menu -->
+            <!--<ul id="tree" class="ztree">-->
+			<ul class="sidebar-menu">
+                <li class="treeview active" >
+                    <a href="#"><span><i class="fa fa-user fa-fw"></i>客户管理</span> <i class="fa fa-angle-left pull-right"></i></a>
+                    <ul class="treeview-menu">
+                        <li><a src="/p/custom" class="clickMenu"> 客户基本信息管理</a></li>
+                        <li><a src="/p/domain" class="clickMenu"> 客户域管理</a></li>
+                    </ul>
+                </li>
+                <li class="treeview">
+                    <a src="/p/device" class="clickMenu"><span><i class="fa fa-briefcase fa-fw"></i>我的设备</span></i></a>
+                </li>
+                 <li class="treeview">
+                    <a src="/v/live" class="clickMenu"><span><i class="fa fa-briefcase fa-fw"></i>可看直播</span></i></a>
+                </li>
+                 <li class="treeview">
+                    <a src="/v/videorecord" class="clickMenu"><span><i class="fa fa-folder-open fa-fw"></i>历史记录</span></i></a>
+                </li>
+                 <li class="treeview">
+                    <a src="/v/billrecord" class="clickMenu"><span><i class="fa fa-lock fa-fw"></i>账单记录</span></i></a>
+                </li>
+                 <li class="treeview">
+                    <a src="/v/purchasearecord" class="clickMenu"><span><i class="fa fa-phone fa-fw"></i>购买清单</span></i></a>
+                </li>
+                 <li class="treeview">
+                    <a src="/v/userinfo" class="clickMenu"><span><i class="fa fa-briefcase fa-fw"></i>用户信息</span></i></a>
+                </li>
+                 <li class="treeview">
+                    <a src="/v/friends" class="clickMenu"><span><i class="fa fa-users fa-fw"></i>站内好友</span></i></a>
+                </li>
+                 <li class="treeview">
+                    <a src="/v/multileveluser" class="clickMenu"><span><i class="fa fa-briefcase fa-fw"></i>多级用户</span></i></a>
+                </li>
+            </ul>
+
+        </section>
+        <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Main content -->
+		
+        <section  id="content" src="/p/custom">
+
+            <!-- Your Page Content Here -->
+
+        </section><!-- /.content -->
+    </div><!-- /.content-wrapper -->
+
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <!-- Default to the left -->
+        <strong>Copyright &copy; 2015 <a href="http://www.ceyes.cn/" target="_blank">Ceyes</a>.</strong> All rights reserved.
+    </footer>
+
+</div><!-- ./wrapper -->
+</body>
+</html>

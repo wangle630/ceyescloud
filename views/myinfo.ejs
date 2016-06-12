@@ -1,0 +1,170 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+<script type="text/javascript" src="/javascripts/validForm/Validform_v5.3.2_min.js"></script>
+<ol class="breadcrumb">
+    <a type="button" id="btnNav" class="btn btn-default btn-sm  fa fa-dedent"  onclick="navShowHie()"></a>
+    <li class="active">
+        <i class="fa fa-list"></i>  <%= title %>
+    </li>
+</ol>
+
+<div id="wrapper">
+    <div class="box">
+        <div class="demo">
+            <a class="btn btn-primary  btn-detailCustom" id="btnUpdatePwd" href="javascript:">修改密码</a>
+        </div>
+        <div id="HBox" >
+            <form id="updatePwdDiv" style="margin-top:10%"  role="form" class="form-horizontal" method="post">
+                <p><input id="oldPwd" class="form-control"  type="password" name="oldPwd" value="" datatype="*" placeholder="原始密码"   aria-describedby="basic-addon1"/></p>
+                <p><input   id="newPwd" class="form-control"  type="password" name="newPwd" value="" placeholder="新密码" datatype="*6-15" aria-describedby="basic-addon1"/></p>
+                <p><input   id="newPwd1" class="form-control"  type="password" name="newPwd1" value="" placeholder="重复密码" datatype="*"  recheck="newPwd" aria-describedby="basic-addon1"/></p>
+                <p><input id="btnConnWifi" type="submit" value="确认提交" class="submitBtn btn btn-primary"/></p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<% if (user) {%>
+<div hidden> <%= user.id %><hr /></div>
+<hr />
+<strong><h3>用户信息</h3></strong>
+<div class="row">
+    <div class="col-md-3 margin-bottom-2">
+        <label >用户名</label>
+        <p class="form-control-static" id="accountName"><%= user.accountName %></p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3 margin-bottom-2">
+        <label>邮箱</label>
+        <p class="form-control-static" id="audioCodec"><%= user.email %></p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3 margin-bottom-2">
+        <label>创建日期</label>
+        <p class="form-control-static" id="audioCodec"><%= user.Created %></p>
+    </div>
+</div>
+<hr />
+<% } %>
+
+<div>
+    <label><%= user.accountName %>共享的直播</label>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+            <thead >
+            <th>设备名称</th>
+            <th>设备编号</th>
+            <th>共享人</th>
+            <th>操作</th>
+            </thead>
+            <tbody>
+            <% if (lives) { %>
+            <% lives.forEach(function (row) { %>
+            <div>
+                <tr >
+                    <td "><%- row.share_device_Name %></td>
+                    <th><%- row.share_device_SN %></th>
+                    <th><%- row.name %></th>
+                     <th>
+                         <a  class="btn"  onclick="removeVS('<%- row.vsid %>')" >删除</a>
+                     </th>
+                </tr>
+            </div>
+            <% }) %>
+            <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div>
+    <label><%= user.accountName %>共享的历史</label>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+            <thead >
+            <th>文件名称</th>
+            <th>视频分辨率</th>
+            <th>视频时长</th>
+            <th>文件大小</th>
+            <th>共享人</th>
+            <th>备注</th>
+            <th>操作</th>
+            </thead>
+            <tbody>
+            <% if (records) { %>
+            <% records.forEach(function (row) { %>
+            <div>
+                <tr >
+                    <th><%- row.file_name %></th>
+                    <th><%- row.size %></th>
+                    <th><%- row.duration %></th>
+                    <th><%- (row.input_bytes/1024/1024).toFixed(2) %>MB </th>
+                    <th><%- row.name %></th>
+                    <th><%- row.remark %></th>
+                    <th>
+                        <a  class="btn  " onclick="javascript:top.location.href='/myfriends/<%- row.hashed_id  %>';" >播放</a>
+                        <a  class="btn"  onclick="removeVS('<%- row.vsid %>')" >删除</a>
+
+                    </th>
+                </tr>
+            </div>
+            <% }) %>
+            <% } %>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+<div class="modal fade" id="delDialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">提示</h4>
+            </div>
+            <form id="delForm" method="post">
+                <div class="modal-body">
+                    <p>您确定删除吗？</p>
+                    <input type="hidden" id="deviceSN" name="deviceSN">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="btnRnm">确定</button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+<%- include footer%>
+<script  type="text/javascript">
+    $(function() {
+        var $el = $('.dialog');
+        $el.hDialog();
+
+        //改变弹框背景色
+        $('#btnUpdatePwd').hDialog({box:'#HBox',boxBg: '#006699',width:350,height:350});
+
+        var demo=$("#updatePwdDiv").Validform({
+            tiptype:4,
+            label:".label",
+            showAllError:true,
+            datatype:{
+                "zh1-6":/^[\u4E00-\u9FA5\uf900-\ufa2d]{1,6}$/,
+                "Aa1":/^[A-Za-z0-9]+$/
+            }
+        });
+
+        demo.addRule([{
+            ele: "#oldPwd",
+            datatype: "*",
+            ajaxurl:"/myinfo/comparePwd"
+        }]);
+    });
+    function removeVS(id){
+        $('#delDialog').modal({backdrop:'true'});
+        $('#delForm').attr('action','/myfriends/removevideoShare/'+id);
+    }
+</script>

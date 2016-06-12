@@ -1,0 +1,190 @@
+<%- include header %>
+<%- include right_user %>
+<%- include left_nav %>
+<%- include flash %>
+<ul class="breadcrumb">
+    <li class="active">
+        <i class="fa fa-list"></i> <%= title %>
+    </li>
+</ul>
+<!-- 视频播放 -->
+
+
+<div id="container2"></div>
+<hr/>
+<input type="button" id="player-play" class="btn btn-success btn-xs" value="播放"/>
+<input type="button" id="player-stop" class="btn btn-danger btn-xs" value="停止"/>
+<!--<input type="button" id="player-playlist" class="btn btn-success btn-xs" value="播放列表"/>-->
+<input type="button" id="player-resize" class="btn btn-success btn-xs" value="更改大小"/>
+<hr/>
+<div>
+    播放地址：<input type="text" id="streamAdd" size="51" value='http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8'></input>
+    <input type="button" id="player-play-add" class="btn btn-success btn-xs" value="播放"/>
+
+</div>
+
+<hr/>
+
+<h3>METADATA LOGS</h3>
+<div id="logs"></div>
+
+<script type="text/javascript" src="javascripts/jquery.js"></script>
+<script type="text/javascript" src="jwplayer-7.4.2/jwplayer.js"></script>
+
+<script type="text/javascript">
+
+
+
+    var playlist = [
+        {
+            file: "http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8",
+            title: '香港卫视hls'}
+    ]
+
+    var listArray = '<%= liveList %>'.split(',');
+
+    listArray.forEach(function(list){
+        console.log(list)
+        if(list.length > 0){
+            var arr = list.split('|')
+
+            var item = {
+                file:arr[0],
+                title:arr[1]
+            }
+            playlist.unshift(item)
+        }
+    })
+
+    $(function () {
+        var addJwplayer = {
+            hlslabels: {
+                "415": "128p",
+                "515": "160p",
+                "650": "208p",
+                "881":"252p",
+                "1200":"332p",
+                "1600": "432p",
+                "2300": "560p",
+                "3200":"720p"
+            },
+            logo: {
+                "file": "img/logo2.png",
+                "hide": true,
+                "margin": "5",
+                "position": "top-right"
+            },
+            skin: {
+                "name": "vapor"
+            },
+            abouttext:'云视AR指导平台播放器',
+            preload:'auto',
+            "aspectratio": "16:9",
+            "autostart": false,
+            "controls": true,
+            "displaydescription": false,
+            flashplayer: 'jwplayer-7.4.2/jwplayer.flash.swf',
+            "height": 270,
+            key:"AXwkvDKdH7U6SU+kE1cljQjSQaHvZq3upYQSpg==",
+//            "key": "br/cHmny7lp17OzpEqNkfIg9S0+Uxfc0OjcAxzwlYsgt9tqUySVKjg==",
+            "primary": "html5",
+            hlshtml :true,
+            "stretching": "uniform",
+            "width": "100%"
+        };
+
+        var defJwplayer = addJwplayer;
+        defJwplayer.playlist = playlist
+        defJwplayer.autostart = false
+        defJwplayer.visualplaylist = true
+
+        thePlayer = jwplayer('container2').setup(defJwplayer);
+
+        //播放地址
+        $('#player-play-add').click(function () {
+            var f = $('#streamAdd').val();
+            defJwplayer.autostart = true;
+            defJwplayer.playlist = '';
+
+            if(f) defJwplayer.file = f;
+            defJwplayer.visualplaylist = true;
+            thePlayer = jwplayer('container2').setup(defJwplayer);
+        });
+
+        //播放 暂停
+        $('#player-play').click(function () {
+            if (thePlayer.getState() != 'PLAYING') {
+                 thePlayer.play(true);
+
+                this.value = '暂停';
+            } else {
+                thePlayer.play(false);
+                this.value = '播放';
+            }
+        });
+
+        //停止
+        $('#player-stop').click(function () {
+            thePlayer.stop();
+        });
+
+
+        //获取状态
+        $('#player-playlist').click(function () {
+            var arr = thePlayer.getProvider()
+            console.log(arr);
+        });
+
+        //获取播放进度
+        $('.player-current').click(function () {
+            alert(thePlayer.getPosition());
+        });
+
+
+        //改变大小
+        $('#player-resize').click(function () {
+            if (thePlayer.getWidth() > 480) {
+                thePlayer.resize(480, 270);
+            } else {
+                thePlayer.resize(800, 500);
+            }
+        });
+
+        //跳转到指定位置播放
+        $('.player-goto').click(function () {
+            if (thePlayer.getState() != 'PLAYING') {    //若当前未播放，先启动播放器
+                thePlayer.play();
+            }
+            thePlayer.seek(30); //从指定位置开始播放(单位：秒)
+        });
+
+        //获取视频长度
+        $('.player-length').click(function () {
+            alert(thePlayer.getDuration());
+        });
+
+
+
+
+
+        //输出日志
+//        var metadataEntries = 1;
+//
+//        thePlayer.onMeta(function(e) {
+//            document.getElementById('logs').innerHTML += "<br /><strong>Metadata Entry #"
+//                    + metadataEntries.toString()
+//                    + "</strong><br />";
+//            for (var key in e.metadata) {
+//                document.getElementById('logs').innerHTML += key.toUpperCase() + ": "
+//                        + e.metadata[ key ]
+//                        + "<br />"
+//            }
+//            metadataEntries++
+//        })
+
+    });
+</script>
+
+
+<%- include footer %>
+

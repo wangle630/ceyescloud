@@ -1,0 +1,27 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+<script type="text/javascript" src="/javascripts/validForm/Validform_v5.3.2_min.js"></script>
+<ol class="breadcrumb">
+    <a type="button" id="btnNav" class="btn btn-default btn-sm  fa fa-dedent"  onclick="navShowHie()"></a>
+    <li class="active">
+        <i class="fa fa-list"></i>  <%= title %>
+    </li>
+</ol>
+
+
+
+<% if (user) {%>
+<div hidden> <%= user.id %><hr /></div>
+<hr />
+<strong><h3>资源下载</h3></strong>
+<ul>
+    <li>
+        <h4><img alt="Android Xpai SDK" src="/img/android.png" /><a  target="_black" class="headeranchor-link"   href="<%=link%>" title="Permanent link: Yunshizhibo Android APK" data-icon="#">
+         智能眼镜C100 & 安卓移动客户端下载</a></h4>
+    </li>
+</ul>
+<hr />
+<% } %>
+<%- include footer%>

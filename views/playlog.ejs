@@ -1,0 +1,57 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+<ol class="breadcrumb">
+
+    <li class="active">
+        <i class="fa fa-list"></i>  <%= title %>
+    </li>
+</ol>
+<div class="col-md-13">
+    <br />
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+            <thead >
+                <th>#</th>
+                <th>logid</th>
+                <th>用户</th>
+                <th>hashed_id</th>
+                <th>size</th>
+                <th>duration</th>
+                <th>播放时长</th>
+                <th>缓存时长</th>
+                <th>估算流量</th>
+                <th>时间</th>
+            </thead>
+            <tbody>
+                <% if (rows) { %>
+                <% var num =rows.length + 1  %>
+                <% var totalsize = 0  %>
+                <% rows.forEach(function (row) { %>
+                <%  num = num -1  %>
+                <%  var inputsize = (row.buffRange/row.duration)*row.size %>
+                <%  totalsize = totalsize + inputsize  %>
+
+                <div>
+                        <tr>
+                        <th><%=  num  %></th>
+                        <th><%- row.id.slice(0,4)+'...' %></th>
+                        <th><%- row.accoundName %></th>
+                        <th><a href="/myrecords/<%- row.hashed_id  %>" ><%- row.hashed_id.slice(20,33) %></a></th>
+                        <th><%- (row.size/1024/1024).toFixed(2) %>MB</th>
+                        <th><%- row.duration %></th>
+                        <th><%- row.palyedRange %></th>
+                        <th><%- row.buffRange %></th>
+                        <th><%= (inputsize/1024/1024).toFixed(2)  %>MB</th>
+                        <th><%- row.Updated %></th>
+                        </tr>
+                        </div>
+                        <% }) %>
+                    流量预估总计：<%=  (totalsize/1024/1024).toFixed(2)  %>Mb
+                    <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<%- include footer%>

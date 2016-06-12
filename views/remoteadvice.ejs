@@ -1,0 +1,636 @@
+<%- include header %>
+<%- include right_user %>
+<%- include left_nav %>
+<%- include flash %>
+<ol class="breadcrumb">
+    <li class="active">
+        <a type="button" id="btnNav" class="btn btn-default btn-sm  fa fa-dedent"  onclick="navShowHie()"></a>
+        <a href="/mylives"><i class="fa fa-dashboard"></i> 可看直播 </a>/<i class="fa fa-list"></i> <%= title %>
+    </li>
+</ol>
+<link href="/plugins/pickList/pickList.css" rel="stylesheet">
+<link href="/remotedevice/css/rect.css" rel="stylesheet"/>
+<script type="text/javascript" src="/remotedevice/js/jquery.js" type="text/javascript"></script>
+<script type="text/javascript" src="/remotedevice/js/jquery.mousewheel.min.js"></script>
+<script type="text/javascript" src="/dist/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/remotedevice/js/flowplayer-3.1.4.min.js"></script>
+<script type="text/javascript" src="/remotedevice/js/jquery-ui.js"></script>
+<script type="text/javascript" src="/remotedevice/js/swfobject.js"></script>
+<script type="text/javascript" src="/remotedevice/js/recorder.js"></script>
+<script type="text/javascript" src="/remotedevice/js/main4recorder.js"></script>
+<script type="text/javascript" src="/remotedevice/js/hmac-sha256.js"></script>
+<script type="text/javascript" src="/remotedevice/js/rect.js"></script>
+<script type="text/javascript" src="/plugins/pickList/pickList.js"></script>
+<script>
+    var playerWidth = '100%';
+    var playerHeight = 600;
+    // maximum allowed delay of live streaming
+    var delayTolerance = 300;  // milliseconds
+    // reconnect when the client doesn't receive any frame for this milliseconds
+    var mediaTimeout = 2000;  // milliseconds
+    var parameters = {
+        src: '',
+        width: playerWidth,
+        height: playerHeight,
+        controlBarMode:'docked',// docked   floating  none   控制条样式
+        poster:"/img/logo1.png",// 播放前加载图片
+        controlBarAutoHide: true, // 是否自动隐藏控制条
+        autoPlay: true,  // start playing the media after page loa,
+        optimizeBuffering:false,
+        initialBufferTime : 0,  // buffer to fill before play begins
+        expandedBufferTime : delayTolerance / 500,  // maximum buffer size
+        minContinuousPlayback : 0,  // minimum playback time without pausing
+        liveBufferTime: 0,  // buffer time for live content
+        streamType: 'live',
+        scaleMode: 'letterbox', // don't scale the video width and height
+        verbose: true,  // display detailed error messages for debugging
+        javascriptCallbackFunction: onPlayerEvent,
+        plugin_hls: "/swf/wmp_plugin_hls.swf"
+
+    };
+    var originTime = null;    // system time for the media time zero
+    var timeoutTimer = null;  // timeout id
+    var player = null;        // Player object (element)
+    // called when a player event happened
+    function onPlayerEvent(playerId, eventName, eventObj) {
+        // grab the player object
+        if (player === null) {
+            if (null != playerId) {
+                console.log(playerId);
+                player = document.getElementById(playerId);
+                console.log(player);
+            }
+        }
+        if (eventName === 'timeupdate') {  // time information
+            if (isNaN(eventObj.currentTime)) {
+                $("#divWarning").html("视频已停止");
+                $('#divWarning').show();
+                var rtmp_publisher = document.getElementById("rtmp_publisher");
+                if (null != rtmp_publisher) {
+                    if (rtmp_publisher.isPublishing()) {
+                        rtmp_publisher.stopPublish();
+                        rtmp_publisher.disconnect();
+                        $("#btn_live_audio").attr('class', 'btn btn-primary btn-block');
+                        $("#btn_live_audio").attr('value', '发起语音通话');
+                        setTimeout(function () {
+                            document.getElementById("btn_live_audio").disabled = true;
+                            document.getElementById("btn_send_msg").disabled = true;
+                            document.getElementById("btnShare").disabled = true;
+                        }, 1000);
+                    }
+                }
+                return;
+            }
+            if (eventObj.currentTime === 0) {
+                // ignore time zero
+                return;
+            }
+            var currentMediaTime = eventObj.currentTime * 1000;
+            var now = new Date().getTime();
+            if (originTime === null) {
+                originTime = now - currentMediaTime;
+            }
+            // calculate the media time from originTime
+            var projectedMediaTime = now - originTime;
+            var mediaTimeDiff = projectedMediaTime - currentMediaTime;
+            if (mediaTimeDiff > delayTolerance) {  // the delay exceeds tolerance
+                // reload the stream
+                player.pause();
+                player.play2();
+            } else if (mediaTimeDiff < 0) {  // originTime was late
+                // update originTime
+                originTime = now - currentMediaTime;
+            }
+            scheduleMediaTimeout();
+        } else if (eventName === 'play') {  // play has begun
+            cancelMediaTimeout();
+            // reset originTime
+            originTime = null;
+        }
+    }
+    // cancel the media timeout
+    function cancelMediaTimeout() {
+        if (timeoutTimer !== null) {
+            clearTimeout(timeoutTimer);
+        }
+    }
+    // schedule the media timeout
+    function scheduleMediaTimeout() {
+        cancelMediaTimeout();
+        timeoutTimer = setTimeout(onMediaTimeout, mediaTimeout);
+    }
+    // called when the media has timed out
+    function onMediaTimeout() {
+        try {
+            if (player.getState() === 'paused') {  // player is paused
+                return;
+            }
+        } catch (e) {
+            console.log("get player status exception:" + e);
+            return;
+        }
+        // reload the stream
+        player.pause();
+        player.play2();
+    }
+</script>
+<script type="text/javascript">
+    var iplayer = null;
+    var player_style = null;
+    var dst_user_name = '<%= author %>';
+    var vs_id = '<%= vs_id %>';
+    var deviceSN = '<%= deviceSN %>';
+    var pick;
+    (function ($) {
+        $.getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]);
+            return null;
+        }
+    })(jQuery);
+    function loadShareData(sn, id) {
+        var hashed_id = '<%= hashed_id %>';
+        $("#share").hide();
+        $.ajax({
+            type: 'GET',
+            url: '/myfriends/disposable?' + new Date().getTime(),
+            data: {
+                sn: deviceSN,
+                hashedid: hashed_id
+            },
+            success: function (res) {
+                var json = $.parseJSON(res);
+                if (pick)
+                    pick.close();
+                pick = $("#pickList").pickList({data: json});
+                if (json.length > 0) {
+                    $("#share").show();
+                }
+            },
+            error: function () {
+            }
+        });
+    }
+    function disposableShare() {
+        var hashed_id = '<%= hashed_id %>';
+        $.ajax({
+            type: 'post',
+            url: '/myfriends/disposableShare',
+            data: {
+                sn: deviceSN,
+                hashedid: hashed_id,
+                pickids: JSON.stringify(pick.getValues())
+            },
+            success: function (res) {
+                alert(res);
+                $("#myModal").modal('hide')
+            },
+            error: function () {
+                $("#myModal").modal('hide')
+            }
+        });
+    }
+    var is_ios = /(iPhone|iPod|iPad).*AppleWebKit.*Safari/i.test(navigator.userAgent);
+    function send_txt_msg(msg, action) {
+        var hashed_id = '<%= hashed_id %>';
+        var author = '<%= author %>';
+        $.ajax({
+            url: '/mylives/' + hashed_id + '/send_txt_msg',
+            type: 'GET',
+            data: {content: msg, author: author, action: action},
+            success: function (result) {
+            }
+        });
+    };
+    $(function () {
+        /**
+         * 更改设备名称弹窗居中
+         */
+        $('.modal.fade').on('shown.bs.modal', function () {
+            var $this = $(this);
+            var $modal_dialog = $this.find('.modal-dialog');
+            var m_top = ( $(window).height() - $modal_dialog.height() ) / 2;
+            $modal_dialog.css({'margin': m_top + 'px auto'});
+        });
+        var gain = $('#gain')[0];
+        var silenceLevel = $('#silenceLevel')[0];
+        var spinner = $("#spinner").spinner({width: 1, max: 10, min: 1});
+        spinner.spinner("value", 3);
+        for (var i = 0; i <= 100; i++) {
+            gain.options[gain.options.length] = new Option(100 - i);
+            silenceLevel.options[silenceLevel.options.length] = new Option(i);
+        }
+        var appWidth = 24;
+        var appHeight = 24;
+        var flashvars = {};
+        var params = {};
+        var attributes = {'id': "recorderApp", 'name': "recorderApp"};
+        swfobject.embedSWF("/swf/recorder.swf", "audio_recorder", appWidth, appHeight, "11.0.0", "", flashvars, params, attributes);
+        var flashVars = {
+            width: 1,
+            height: 1,
+            fps: 20,
+            file: '1',
+            poster: "/img/logol.png",
+            autoPlay:false,
+            /*
+             以下两行为初始化是否禁用音频或视频，如果这里不设置，
+             后面可以通过disableVideo(true/false)来动态设置
+             */
+            disable_video: 'true', /*只有'true'才禁用，其他任何值都是false, 此行省略就是false*/
+            disable_audio: 'false', /*只有'true'才禁用，其他任何值都是false, 此行省略就是false*/
+        };
+        swfobject.embedSWF("/swf/RtmpPublisher.swf", "rtmp_publisher", "230", "160", "11.0.0", null, flashVars, {wmode: 'direct'}, null, null);
+    });
+    /*
+     * 配置麦克风的采集参数
+     */
+    function configureMicrophone() {
+        if (!FWRecorder.isReady) {
+            return;
+        }
+        FWRecorder.configure($('#rate').val(), $('#gain').val(), $('#silenceLevel').val(), $('#silenceTimeout').val());
+        FWRecorder.setUseEchoSuppression($('#useEchoSuppression').is(":checked"));
+        FWRecorder.setLoopBack($('#loopBack').is(":checked"));
+    }
+    function startAudioRecord() {
+        FWRecorder.observeLevel();
+        FWRecorder.record('audio', 'audio.wav')
+    }
+    function play(file_name) {
+        if (player_style == null) {
+            player_style = $("#player").attr("style");
+        }
+        if (file_name) {
+            $("#player").attr('href', file_name);
+            if (detectFlashInstalled()) {
+                if (iplayer != null) {
+                    iplayer.stop();
+                }
+//                测试用直播地址
+//                http://blog.csdn.net/chinabinlang/article/details/45092297
+//                香港卫视 rtmp://live.hkstv.hk.lxdns.com/live/hks
+//                香港卫视 http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8
+                parameters.src = file_name;
+ //               parameters.src = 'rtmp://live.hkstv.hk.lxdns.com/live/hks';
+                swfobject.embedSWF('/swf/StrobeMediaPlayback.swf', 'player',
+                        playerWidth, playerHeight, '10.1.0', 'expressInstall.swf', parameters,
+                        {allowFullScreen: 'true', wmode: 'Opaque'},
+                        {name: 'player'}
+                );
+            }
+        }
+    }
+    function detectFlashInstalled() {
+        var hasFlash = false;
+        try {
+            var fo = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+            if (fo) {
+                hasFlash = true;
+            }
+        } catch (e) {
+            if (navigator.mimeTypes
+                    && navigator.mimeTypes['application/x-shockwave-flash'] != undefined
+                    && navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
+                hasFlash = true;
+            }
+        }
+        return hasFlash;
+    }
+    $(document).ready(function () {
+        play(null);
+        play('<%= rtmpUrl %>');
+        setTimeout(function () {
+            onDstUserChange();
+            document.getElementById("btn_live_audio").disabled = false;
+            var oRect = new Rect();
+            oRect.addEventListener(oRect.doc, 'mousedown', oRect.down);
+            oRect.addEventListener(oRect.doc, 'mousemove', oRect.move);
+            oRect.addEventListener(oRect.doc, 'mouseup', oRect.up);
+        }, 3000);
+        if (!detectFlashInstalled()) {
+            $('#send_audio_control').hide();
+        }
+        $("#btn_send_msg").click(function () {
+            var message = $("#txt_message").val();
+            var date = new Date(+new Date() + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '');
+            if (message) {
+                var content = "'" + message + "'";
+                send_txt_msg(content, '1');
+                $("#oldMessage").prepend("<p><h10 class='text-primary'>" + date + "</h10><h6 style='word-break:break-all'>" + message + "</h6></p>")
+                console.log(message);
+                $("#txt_message").val("");
+            }
+        });
+        $("#btn_live_audio").click(function () {
+            var rtmp_publisher = document.getElementById("rtmp_publisher");
+            if (rtmp_publisher.isPublishing()) {
+                rtmp_publisher.stopPublish();
+                rtmp_publisher.disconnect();
+                $(this).attr('class', 'btn btn-primary btn-block');
+                $(this).attr('value', '发起语音通话');
+
+            } else {
+                rtmp_publisher.startPublish();
+            }
+        });
+    });
+    function disconnectRtmp() {
+        try {
+            rtmp_publisher.stopPublish();
+        } catch (e) {
+        }
+    }
+    function connectRtmp() {
+        disconnectRtmp();
+        <%- rtpmInit %>;
+    }
+    function rtmpOnConnected() {
+        document.getElementById("btn_live_audio").disabled = false;
+    }
+    function loseConnection() {
+        document.getElementById("btn_live_audio").disabled = true;
+        document.getElementById("btn_live_audio").value = "发起语音通话";
+        $("#btn_live_audio").attr('class', 'btn btn-primary btn-block');
+        connectRtmp();
+    }
+    function rtmpOnStartPublish() {
+        console.log("rtmp start publish");
+        document.getElementById("btn_live_audio").value = "停止语音通话";
+        $("#btn_live_audio").attr('class', 'btn btn-danger btn-block');
+    }
+    function rtmpOnStopPublish() {
+        console.log("rtmp stop publish");
+        document.getElementById("btn_live_audio").value = "发起语音通话";
+        $("#btn_live_audio").attr('class', 'btn btn-primary btn-block');
+    }
+    function rtmpOnConnectFail() {
+        console.log("rtmp connect fail");
+        loseConnection();
+    }
+    function rtmpOnConnectClosed() {
+        console.log("rtmp connect close");
+        loseConnection();
+    }
+    function rtmpOnConnectRejected() {
+        console.log("rtmp connect rejected");
+        loseConnection();
+    }
+    /*
+     * 由main4record.js中recording_stopped事件回调
+     */
+    function onDstUserChange() {
+        var hashed_id = '<%= hashed_id %>';
+        var author = '<%= author %>';
+        var vs_id = '<%= vs_id %>';
+        $.ajax({
+            url: '/mylives/' + hashed_id + '/RecorderInit',
+            type: 'GET',
+            data: {author: author, vs_id: vs_id},
+            success: function (result) {
+                connectRtmp();
+                result;
+            }
+        });
+    }
+    $(function () {
+        var $wallcontent = $('#collapseRTMP'), pagenum = 1, $showmore = $('#showmore');
+        //定义一个加载数据内容的方法
+        function loadshots() {
+            //定义Ladda相关的方法，触发“加载中"效果
+            var l = Ladda.create(this);
+            l.start();
+            //设置进度
+            l.setProgress(0.3);
+            $showmore.find('.ladda-label').text('loading...');
+        }
+        //绑定方法
+        //页面加载后立刻触发
+//        $showmore.trigger('click');
+    });
+    function pushRtmp() {
+        var btn = $("#btnStartPush");
+        var txt = $("#txtPushCallback");
+        var inPutUrl = '<%= rtmpUrl %>';
+        var outPutUrl = $("#txtOutPutUrl").val()
+        var outPutCode = $("#txtOutPutCode").val()
+        if (outPutUrl.length > 0 && (outPutUrl.indexOf("://") > 0 )) {
+            txt.html('');
+            btn.text('pushing....');
+            btn.removeAttr('onclick')
+            btn.attr('disabled', 'disabled')
+            $.ajax({
+                type: 'post',
+                url: '/stream/pushRtmp',
+                data: {
+                    inPutUrl: inPutUrl,
+                    outPutUrl: outPutUrl,
+                    outPutCode: outPutCode
+                },
+                success: function (res) {
+                    txt.html(res + '<br/>' + '   请重新输入地址，或联系管理员。')
+                    btn.text('开始推送');
+                    btn.removeAttr('disabled')
+                    btn.attr('onclick', 'pushRtmp()')
+                },
+                error: function (err) {
+                    txt.html(res + '<br/>' + '   请重新输入地址，或联系管理员。')
+                    btn.text('开始推送');
+                    btn.removeAttr('disabled')
+                }
+            });
+        } else {
+            alert('请输入正确的服务器地址')
+        }
+    }
+    function stopPush() {
+        var txt = $("#txtPushCallback");
+        var inPutUrl = '<%= rtmpUrl %>';
+        $.ajax({
+            type: 'post',
+            url: '/stream/killProcess',
+            data: {
+                strParameter: inPutUrl,
+            },
+            success: function (res) {
+                txt.html(res + '<br/>' + '   请重新输入地址，或联系管理员。')
+            },
+            error: function (err) {
+                txt.html(res + '<br/>' + '   请重新输入地址，或联系管理员。')
+            }
+        });
+    }
+</script>
+<div class=" row-fluid">
+    <div id="video" class="row span7 offset1 hero-unit">
+        <div class="alert alert-danger" role="alert" hidden id="divWarning"></div>
+        <div class="col-md-9" id="hhhh">
+            <div id="pp">
+                <a href="#" id="player"></a>
+            </div>
+            <% if(state == 0){ %>
+            <div class="col-md-10">
+                <a role="button" data-toggle="collapse" href="#collapseRTMP" aria-expanded="false"
+                   aria-controls="collapseRTMP" class="fa fa-cloud-upload">
+                    直播推送
+                </a>
+                <div class="collapse" id="collapseRTMP">
+                    <div class="well disabled">
+                        <div id="divPushRTMP" class="disabled">
+                            服务器地址：<input type="text" class="form-control input-sm" id="txtOutPutUrl" placeholder="">
+                            串流码：<input type="text" class="form-control input-sm" id="txtOutPutCode" placeholder="">
+                            <br/>
+                            <a class="btn btn-primary" id="btnStartPush" onclick="pushRtmp()">开始推送</a>
+                            <a class="btn btn-primary" onclick="stopPush()">停止该直播源的所有推送服务</a>
+                            <h6 id="txtPushCallback"></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+        </div>
+        <div id="send_audio_control" class="col-md-3">
+            <h6 class="text-primary">语音通话</h6>
+            <div id="rtmp_publisher" class="col-md-12">
+                <p>Flash not installed</p>
+            </div>
+            <div class="col-md-12">
+                <lable size="1" face="arial" color="red">点击允许麦克风权限(不设置语音不能用)</lable>
+            </div>
+            <input type="button" id="btn_live_audio" class="btn btn-primary btn-block col-md-12" disabled
+                   value="发起语音通话"/>
+            <hr/>
+            <div class="panel-default">
+                <div class="chat-panel panel panel-default">
+                    <div class="panel-heading">
+                        <i class="fa fa-comments fa-fw"></i>
+                        发送文本消息.
+                    </div>
+                    <div id="oldMessage" class="panel-body" style="height: 222px">
+                    </div>
+                    <div class="panel-footer">
+                        <div class="input-group">
+                            <input id="txt_message" type="text" maxlength="100" class="form-control input-sm"
+                                   placeholder="输入文本...建议100字以内"/>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-primary btn-sm" id="btn_send_msg">
+                                        发送
+                                    </button>
+                                </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% if(state == 0){ %>
+            <button type="button" id="btnShare" data-toggle="modal" onclick="loadShareData()" data-target="#myModal"
+                    class="demo7 btn btn-primary btn-block  btn-detailCustom">寻求指导
+            </button>
+            <% } %>
+            <div style="visibility: hidden;">
+                <h4>发送语音</h4>
+                <div class="control_panel audio">
+					<span id="save_button">
+						<span id="audio_recorder">
+							<p>Your browser must have JavaScript enabled and the Adobe Flash Player installed.</p>
+						</span>
+					</span>
+                    <a class="play_button" style="display:none;" onclick="FWRecorder.playBack('audio');"
+                       href="javascript:void(0);" title="Play">
+                    </a>
+                    <a class="pause_button" style="display:none;" onclick="FWRecorder.pausePlayBack('audio');"
+                       href="javascript:void(0);" title="Pause">
+                    </a>
+                    <div class="level"></div>
+                </div>
+                <div class="details">
+                    <button class="hide_level" onclick="FWRecorder.stopObservingLevel();" style="display: none;">Hide
+                        Level
+                    </button>
+                    <div id="status">
+                        录制状态...
+                    </div>
+                    <div>时长: <span id="duration"></span></div>
+                    <div>活动水平: <span id="activity_level"></span></div>
+                    <div>发送状态: <span id="upload_status"></span></div>
+                </div>
+                <form id="uploadForm" name="uploadForm" action=''>
+                    <input name="authenticity_token" value="xxxxx" type="hidden">
+                    <input name="upload_file[parent_id]" value="1" type="hidden">
+                    <input name="format" value="json" type="hidden">
+                </form>
+                <h4>配置麦克风</h4>
+                <form class="form-horizontal" style="align:left;" onsubmit="return false;">
+                    <div class="control-group">
+                        <label for="rate" class="control-label">采样率</label>
+                        <div class="controls">
+                            <select id="rate" name="rate">
+                                <option value="44" selected>44,100 Hz</option>
+                                <option value="22">22,050 Hz</option>
+                                <option value="11">11,025 Hz</option>
+                                <option value="8">8,000 Hz</option>
+                                <option value="5">5,512 Hz</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="gain" class="control-label">音量增益</label>
+                        <div class="controls">
+                            <select id="gain" name="gain">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="silenceLevel" class="control-label">静音侦测级别</label>
+                        <div class="controls">
+                            <select id="silenceLevel" name="silenceLevel"> </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="silenceTimeout" class="control-label">静音超时 </label>
+                        <div class="controls">
+                            <input id="silenceTimeout" name="silenceTimeout" value="2000"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="useEchoSuppression" class="control-label">启用回声抑制</label>
+                        <div class="controls">
+                            <input id="useEchoSuppression" name="useEchoSuppression" type="checkbox"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <button onclick="configureMicrophone();" class="btn btn-primary">提交配置</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade col-sm-10" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 id="myModalLabel">寻求好友远程指导</h4>
+            </div>
+            <div class="modal-body">
+                <div id="pickList"></div>
+                <br><br>
+                <input type="hidden" id="device_SN" name="device_SN" value="">
+                <input type="hidden" id="device_id" name="device_id" value="">
+                <input type="hidden" id="pickids" name="pickids" value="">
+                <input type="hidden" id="size" name="size" value="<%=size%>">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="share" onclick="disposableShare();">寻求指导</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<p id="hashed_id" hidden><%= hashed_id %></p>
+<p id="author" hidden><%= author %></p>
+<p id="vs_id" hidden><%= vs_id %></p>

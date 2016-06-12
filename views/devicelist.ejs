@@ -1,0 +1,56 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+<ol class="breadcrumb">
+
+    <li class="active">
+        <i class="fa fa-list"></i>  <%= title %>
+    </li>
+</ol>
+<div class="col-md-13">
+    <br />
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+            <thead >
+                <th>#</th>
+                <th>id</th>
+                <th>deviceSN</th>
+                <th>deviceType</th>
+                <th>accountName</th>
+                <th>enable</th>
+                <th>操作</th>
+            </thead>
+
+
+            <tbody>
+                <% if (rows) { %>
+                <% rows.forEach(function (row) { %>
+                        <div>
+                        <tr>
+                        <th>#</th>
+                        <th><%- row.id %></th>
+                        <th><%- row.deviceSN %></th>
+                        <th><%- row.deviceType %></th>
+                        <th><%- row.accountName %></th>
+                        <th><%- row.state %></th>
+                        <th>
+                            <button type="button" class="btn btn-primary btn-circle"><i class="fa fa-check"></i>
+                            </button>
+                            <button type="button" class="btn btn-success btn-circle"><i class="fa fa-list"></i>
+                            </button>
+                            <button type="button" class="btn btn-info btn-circle"><i class="fa fa-link"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-circle"><i class="fa fa-times"></i>
+                            </button>
+
+                        </th>
+                        </tr>
+                        </div>
+                        <% }) %>
+                    <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<%- include footer%>

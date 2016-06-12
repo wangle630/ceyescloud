@@ -1,0 +1,281 @@
+
+<style>
+	.panel {
+	  margin-bottom: 0px;
+	  margin-top: 0px;
+	  margin-right: 0px;
+	  margin-left: 0px;
+	  background-color: #fff;
+	  border: 1px solid transparent;
+	  border-radius: 4px;
+	  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+			  box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+	}
+</style>
+<script type="text/javascript">
+	$(function() {
+		var defaultData = [
+		  {
+			text: '域',
+			href: '#parent1',
+			tags: ['4'],
+			nodes: [
+			  {
+				text: '域1',
+				href: '#child1',
+				tags: ['2'],
+				nodes: [
+				  {
+					text: '部门1',
+					href: '#grandchild1',
+					tags: ['0']
+				  },
+				  {
+					text: '部门2',
+					href: '#grandchild2',
+					tags: ['0']
+				  }
+				]
+			  },
+			  {
+				text: '域2',
+				href: '#child1',
+				tags: ['2'],
+				nodes: [
+				  {
+					text: '部门1',
+					href: '#grandchild1',
+					tags: ['0']
+				  },
+				  {
+					text: '部门2',
+					href: '#grandchild2',
+					tags: ['0']
+				  }
+				]
+			  },
+			  {
+				text: '域3',
+				href: '#child1',
+				tags: ['2'],
+				nodes: [
+				  {
+					text: '部门1',
+					href: '#grandchild1',
+					tags: ['0']
+				  },
+				  {
+					text: '部门2',
+					href: '#grandchild2',
+					tags: ['0']
+				  }
+				]
+			  },
+			]
+		  },
+		];
+	
+		$('#domain').treeview({
+			color: "#428bca",
+			showBorder: false,
+			data: defaultData
+		});
+	});
+
+</script>
+
+<body>
+	<div class = "row" style="margin-left:-10px;margin-right:-10px;border:1px;solid:#000">
+		<div class="col-sm-10" style="margin-left:0px;background-color:white;">
+			<div id= "dataPanel" class="panel panel-primary" style="margin-top:0px">
+				<div class="panel-heading">
+					用户列表
+					<div style="float:right;margin-right:10px">
+						<label id="addrole" class="btn-primary" data-toggle="modal" data-target="#addrolePanel"><i class="fa fa-plus-circle fa-fw"></i>添加</label>
+					</div>
+				</div>
+				<div class="panel-body"id="account">
+					<table class="table table-striped">
+						<thead>
+							<tr>
+								<th>
+									<input type="checkbox">
+								</th>
+								<th>
+									账户编号
+								</th>
+								<th>
+									账户名
+								</th>
+								<th>
+									密码
+								</th>
+								<th>
+									账户类型(个人/总机)
+								</th>
+								<th>
+									账户角色
+								</th>
+								<th>
+									在线状态
+								</th>
+								<th>
+									域编号
+								</th>
+								<th>
+									默认分组编号
+								</th>
+								<th>
+									默认设备编号
+								</th>
+								<th>
+									创建日期
+								</th>
+								<th>
+									修改日期
+								</th>
+								<th>
+									修改
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>
+									<input type="checkbox">
+								</td>
+								<td>
+									1
+								</td>
+								<td>
+									张三
+								</td>
+								<td>
+									11
+								</td>
+								<td>
+									个人
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									离线
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									01/04/2012
+								</td>
+								<td>
+									01/04/2012
+								</td>
+								<td>
+									<i class="fa fa-pencil fa-fw"></i>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input type="checkbox">
+								</td>
+								<td>
+									2
+								</td>
+								<td>
+									张三
+								</td>
+								<td>
+									22
+								</td>
+								<td>
+									个人
+								</td>
+								<td>
+									222
+								</td>
+								<td>
+									在线
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									01/04/2012
+								</td>
+								<td>
+									01/04/2012
+								</td>
+								<td>
+									<i class="fa fa-pencil fa-fw"></i>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input type="checkbox">
+								</td>
+								<td>
+									3
+								</td>
+								<td>
+									张三
+								</td>
+								<td>
+									33
+								</td>
+								<td>
+									总机
+								</td>
+								<td>
+									333
+								</td>
+								<td>
+									在线
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									111
+								</td>
+								<td>
+									01/04/2012
+								</td>
+								<td>
+									01/04/2012
+								</td>
+								<td>
+									<i class="fa fa-pencil fa-fw"></i>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-2 " style="margin-right:0px;">
+			<div id= "dataPanel" class="panel panel-primary" style="margin-top:0px">
+				<div class="panel-heading">
+					分组信息
+				</div>
+				<div class="panel-body"id="domain">
+				</div>
+			</div>
+		</div>
+	</div>
+</body>

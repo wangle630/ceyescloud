@@ -1,0 +1,71 @@
+
+<style>
+	.panel {
+	  margin-bottom: 0px;
+	  margin-top: 0px;
+	  background-color: #fff;
+	  border: 1px solid transparent;
+	  border-radius: 4px;
+	  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+			  box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+	}
+	
+</style>
+
+<script type="text/javascript">
+	var idMap = {};
+	var customList=null;
+	//总页数
+	var totalPages=0;
+	//总的记录数
+	var totalRecords=0;
+	//起始页
+	var page = 1;
+	//每页显示的条数
+	var per_page = 0;
+	var custominfo = new Object();
+	custominfo['id'] = "";
+	custominfo['customerName'] = "";
+	custominfo['company'] = "";
+	custominfo['address'] = "";
+	custominfo['phone1'] = "";
+	custominfo['phone2'] = "";
+//	queryCustominfo[''] = '';
+	
+	//所有的记录条数
+	var count = 0;
+	$(document).ready(function(){
+		
+		per_page = $("#pagesNum").val();
+		//custominit();
+	});
+</script>
+
+<body>
+	<div class = "row" style="margin-left:0px;margin-right:0px;margin-top:0px">
+		<div id= "dataPanel" class="panel panel-primary" style="margin-top:0px">
+			<div class="panel-heading" style="text-align:center">
+				个人中心
+			</div>
+			<div class="panel-body" >
+				<div class="row">
+					<label style="text-align:right;width:40%">账户Id:</label>
+					<input ></input>
+				</div>
+				<div class="row">
+					<label style="text-align:right;width:40%">账户名:</label>
+					<input></input>
+				</div>
+				<div class="row">
+					<label style="text-align:right;width:40%">密码:</label>
+					<input></input>
+				</div>
+				<div class="row">
+					<label style="text-align:right;width:40%">账户类型:</label>
+					<input></input>
+				</div>
+			</div>
+		</div>
+		
+	</div>
+</body>

@@ -1,0 +1,41 @@
+<%- include header %>
+
+
+
+<section id="login-container">
+<div class="container">
+    <div class="row">
+        <div id="login-wrapper" class="col-md-3 col-md-offset-4">
+
+            <div class="panel login-panel  panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">登录</h3>
+                </div>
+                <div class="panel-body">
+                    <%- include flash %>
+                    <p> 登录后方可继续访问</p>
+                    <form role="form" action="" method="post" class="form-horizontal">
+                        <fieldset>
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <input id="name" type="text" name="name" placeholder="用户名" autofocus class="form-control ">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <input id="password" type="password" name="password" placeholder="密码" class="form-control">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">登录</button>
+                            <hr><a href="/reg" class="btn btn-default btn-block">还不是用户? 注册</a>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+
+<%- include footer %>

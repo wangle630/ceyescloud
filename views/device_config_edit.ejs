@@ -1,0 +1,138 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+<ol class="breadcrumb">
+    <li class="active">
+        <a href="/mydevices"><i class="fa fa-dashboard"></i>  我的设备 </a>/
+        <i class="fa fa-list"></i>  <%= title %>
+    </li>
+</ol>
+<% if (rows[0]) {%>
+    <hr />
+<form role="form" class="form-horizontal" method="post">
+    <div hidden>
+        <input hidden type="text" class="form-control" id="device_id" value="<%= rows[0].device_id %>" name="device_id">
+    </div>
+    <hr />
+    <strong><h3>直播配置</h3></strong>
+    <div class="row">
+            <div class="col-md-3 margin-bottom-2">
+                <label >分辨率</label>
+                <select id="resolution"  name="resolution" class="form-control" >
+                    <option value ="1920x1080">1920x1080</option>
+                    <option value ="1280x720">1280x720</option>
+                    <option value="640x480">640x480</option>
+                </select>
+            </div>
+            <div class="col-md-3 margin-bottom-2">
+                <label>视频编码</label>
+                <input type="text" class="form-control" id="videoCodec" value="<%= rows[0].videoCodec %>"  name="videoCodec"  readonly>
+            </div>
+            <div class="col-md-3 margin-bottom-2">
+                <label>音频编码</label>
+                <input type="text" class="form-control" id="audioCodec" value="<%= rows[0].audioCodec %>" name="audioCodec"  readonly>
+            </div>
+    </div>
+        <div class="row">
+            <div class="col-md-3 margin-bottom-2">
+                <label>帧数</label>
+                <input type="text" class="form-control" id="fps" value="<%= rows[0].fps %>" name="fps" readonly>
+            </div>
+            <div class="col-md-3 margin-bottom-2">
+                <label>码率</label>
+                <select id="bps"  name="bps" class="form-control">
+                    <option value ="500">500</option>
+                    <option value ="1000">1000</option>
+                    <option value="1500">1500</option>
+                    <option value="2000">2000</option>
+                    <option value="2500">2500</option>
+                    <option value="3000">3000</option>
+                </select>
+            </div>
+        </div>
+
+        <hr />
+        <strong><h3>录像配置</h3></strong>
+        <div class="row">
+        <div class="col-md-3 margin-bottom-2">
+            <label >分辨率</label>
+            <select id="offlineresolution"  name="offlineresolution" class="form-control" >
+                <option value ="1920x1080">1920x1080</option>
+                <option value ="1280x720">1280x720</option>
+                <option value="640x480">640x480</option>
+            </select>
+        </div>
+        <div class="col-md-3 margin-bottom-2">
+            <label>视频编码</label>
+            <input type="text" class="form-control" id="offlinevideoCodec" value="<%= rows[0].offlinevideoCodec %>" name="offlinevideoCodec" readonly>
+        </div>
+        <div class="col-md-3 margin-bottom-2">
+            <label>音频编码</label>
+            <input type="text" class="form-control" id="offlineaudioCodec" value="<%= rows[0].offlineaudioCodec %>" name="offlineaudioCodec" readonly>
+        </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3 margin-bottom-2">
+                <label>帧数</label>
+                <input type="text" class="form-control" id="offlinefps" value="<%= rows[0].offlinefps %>" name="offlinefps" readonly>
+            </div>
+            <div class="col-md-3 margin-bottom-2">
+                <label>码率</label>
+                <select id="offlinebps"  name="offlinebps" class="form-control">
+                    <option value ="500">500</option>
+                    <option value ="1000">1000</option>
+                    <option value="1500">1500</option>
+                    <option value="2000">2000</option>
+                    <option value="2500">2500</option>
+                    <option value="3000">3000</option>
+                </select>
+            </div>
+
+        </div>
+
+        <hr />
+        <b><h3>其他配置</h3></b>
+        <div class="row">
+            <div class="col-md-3 margin-bottom-2">
+                <label >本地视频上传</label>
+                <select id="localvideoupload"  name="localvideoupload" class="form-control">
+                    <option value ="0">是</option>
+                    <option value ="1">否</option>
+
+                </select>
+            </div>
+            <div class="col-md-3 margin-bottom-2">
+                <label>同步后删除本地文件</label>
+                <select id="deletelocalfile"  name="deletelocalfile" class="form-control">
+                    <option value ="0">是</option>
+                    <option value ="1">否</option>
+                </select>
+            </div>
+        </div>
+    <hr/>
+    <div class="row">
+    <div class="col-md-3 margin-bottom-2">
+        <label>更新时间</label>
+        <input type="text" class="form-control" id="Updated" value="<%= rows[0].Updated %>" name="Updated" disabled>
+    </div>
+        </div>
+        <div class="row">
+            <hr />
+            <div class="col-md-2 margin-bottom-2">
+                <button type="submit" class="btn btn-primary btn-block">提交更新</button>
+            </div>
+        </div>
+</form>
+<% } %>
+<script>
+    $("#resolution").val("<%= rows[0].resolution %>");
+    $("#offlineresolution").val("<%= rows[0].offlineresolution %>");
+    $("#bps").val("<%= rows[0].bps %>");
+    $("#offlinebps").val("<%= rows[0].offlinebps %>");
+    $("#localvideoupload").val("<%= rows[0].localvideoupload %>");
+    $("#deletelocalfile").val("<%= rows[0].deletelocalfile %>");
+</script>
+
+<%- include footer%>

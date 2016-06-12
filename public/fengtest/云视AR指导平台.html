@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta content="width=device-width" name="viewport">
+    <title>云视AR指导平台</title>
+    <!-- Bootstrap Core CSS -->
+    <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- MetisMenu CSS -->
+    <link href="/bower_components/metisMenu/dist/metisMenu.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.css" rel="stylesheet">
+    <!-- DataTables Responsive CSS -->
+    <!--<link href="/bower_components/datatables-responsive/css/dataTables.responsive.css" rel="stylesheet">-->
+    <!-- Custom CSS -->
+    <link href="/dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="/dist/css/timeline.css" rel="stylesheet">
+    <link href="/dist/js/bootstrap.js" rel="stylesheet">
+    <link href="/dist/js/bootstrap.min.js" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="/bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/jquery/dist/jquery.hDialog.min.js"></script>
+
+
+    <meta charset="UTF-8" />
+    <!--<script type="text/javascript" src="/javascripts/video/jquery.min.js"></script>-->
+</head>
+<!-- oncontextmenu="return false" onselectstart="return false" -->
+<body  >
+
+
+<div id="wrapper" class="container">
+
+    <!-- Navigation -->
+    <nav  class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+
+        <!--<a class="navbar-brand" href="/">-->
+            <!--<img src="/img/logo1.jpg" width="135" alt="">-->
+        <!--</a>-->
+        <!-- Button trigger modal -->
+
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand " href="/" style="color:green"> 云视AR指导平台</a>
+        </div>
+<ul class="nav navbar-top-links navbar-right">
+    <!-- /.dropdown -->
+    
+    <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <i class="fa fa-user fa-fw"></i> liyanan <i class="fa fa-caret-down"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-user">
+
+            <!--<li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>-->
+            <!--</li>-->
+            <!--<li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>-->
+            <!--</li>-->
+            <li class="divider"></li>
+            <li><a href="/logout"><i class="fa fa-sign-out fa-fw"></i> 退出</a>
+            </li>
+        </ul>
+    </li>
+    
+</ul>
+
+<div id="leftnav" class="navbar-default sidebar" role="navigation">
+    <div class="sidebar-nav navbar-collapse">
+        <ul class="nav" id="side-menu">
+            <li>
+                <a href="/mydevices"><i class="fa fa-dashboard"></i> 我的设备</a>
+            </li>
+            <li>
+                <a href="/mylives"><i class="fa fa-video-camera"></i> 可看直播</a>
+            </li>
+            <li>
+                <a href="/myrecords"><i class="fa fa-history"></i> 历史记录</a>
+            </li>
+            <li>
+                <a href="/myinfo"><i class="fa fa-list"></i> 我的账户</a>
+            </li>
+            <li>
+                <a href="/myfriends"><i class="fa fa-users"></i> 我的好友</a>
+            </li>
+            <li>
+                <a href="/download"><i class="fa fa-download"></i> 资源下载</a>
+            </li>
+            <li>
+                <a href="/fengtest"><i class="fa fa-gear"></i> 封测流程</a>
+            </li>
+        </ul>
+    </div>
+    <ul></ul>
+
+    <!-- /.sidebar-collapse -->
+</div>
+</nav>
+<script>
+
+    function navShowHie(){
+
+        if($("#leftnav").is(":hidden")){
+            $("#leftnav").toggle(400);
+            $("#page-wrapper").removeAttr("style" )
+            $("#btnNav").attr("class","btn btn-default btn-sm  fa fa-dedent")
+        }else {
+            $("#leftnav").toggle(400);
+            $("#page-wrapper").attr("style", "margin:1px");
+            $("#btnNav").attr("class","btn btn-default btn-sm  fa fa-indent")
+
+        }
+    }
+</script>
+<div id="page-wrapper">
+    <div class="row">
+        <div class="col-lg-12">
+            <h6 class="row hidden-xs hidden-sm" >
+                <a type="button" id="btnNav" class="btn btn-default btn-sm  fa fa-dedent"  onclick="navShowHie()"></a>
+            </h6>
+
+
+
+<div>
+<p >
+    
+    
+</p>
+</div>
+
+<script type="text/javascript" src="/javascripts/hmac-sha256.js"></script>
+<script type="text/javascript" src="/javascripts/jQuery.js"></script>
+<ol class="breadcrumb">
+    <li class="active">
+        <i class="fa fa-list"></i> 消费明细查询
+    </li>
+</ol>
+
+<script>
+    /**
+     * 时间对象的格式化;
+     */
+    Date.prototype.format = function (format) {
+        /*
+         * eg:format="yyyy-MM-dd hh:mm:ss";
+         */
+        var o = {
+            "M+": this.getMonth() + 1, // month
+            "d+": this.getDate(), // day
+            "h+": this.getHours(), // hour
+            "m+": this.getMinutes(), // minute
+            "s+": this.getSeconds(), // second
+            "q+": Math.floor((this.getMonth() + 3) / 3), // quarter
+            "S": this.getMilliseconds()
+            // millisecond
+        }
+        if (/(y+)/.test(format)) {
+            format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4
+                    - RegExp.$1.length));
+        }
+
+        for (var k in o) {
+            if (new RegExp("(" + k + ")").test(format)) {
+                format = format.replace(RegExp.$1, RegExp.$1.length == 1
+                        ? o[k]
+                        : ("00" + o[k]).substr(("" + o[k]).length));
+            }
+        }
+        return format;
+    }
+
+    function make_signature(uri, query_string, now, key) {
+        var data = uri + query_string + now;
+        return CryptoJS.HmacSHA256(data, key);
+    }
+
+    $(document).ready(function () {
+
+        $("#btn_call").click(function () {
+            var address = $("#txt_address").val();
+            if ("" == address) {
+                alert("接口地址不可以为空");
+                return;
+            }
+            if (!/^http\:\/\/.{3,}/gi.test(address)) {
+                alert('主机地址不合法，必须以http://开头');
+                return;
+            }
+            var uri = $("#txt_uri").val();
+            if ("" == uri) {
+                alert("接口路径不可以为空");
+                return;
+            }
+            var key = $("#txt_key").val();
+            if ("" == key) {
+                alert("共享密钥不可以为空");
+                return;
+            }
+            var query_string = "service_code=" + $("#txt_service_code").val();
+            var data = $("#txt_input_params").val();
+            var now = new Date().getTime();
+            var signature = make_signature(uri, query_string + data, now, key);
+            $("#txt_output_result").val('');
+            $.ajax({
+                url: address + uri + "?" + query_string,
+                type: "POST",
+                headers: {"xvs-timestamp": now, "xvs-signature": signature},
+                data: data,
+                crossDomain: true,
+                dataType: "json",
+                success: function (json_data) {
+//                    $("#txt_output_result").val(JSON.stringify(json_data));
+                    showDetail(json_data);
+                    $("#label_res").text("API返回结果 (时间戳: " + now + ")");
+                },
+                error: function (err) {
+                    $("#txt_output_result").val("API调用失败, 错误信息： \n" + JSON.stringify(err));
+                }
+            });
+        });
+
+    });
+
+    function showDetail(cdrsData){
+        alert('1')
+        $("#txt_output_result").val('HTTP协议输出的所有流量: ' + cdrsData.http_bytes_sent + ' byte'
+                + '\r\n' + 'HTTP协议输出的所有流量: ' + cdrsData.rtmp_bytes_sent + ' byte'
+                + '\r\n' + 'HTTP请求计数: ' + cdrsData.http_request_count
+                + '\r\n' + '直播时长总计: ' + cdrsData.duration + ' s'
+                + '\r\n' + '任务计数: ' + cdrsData.task_count
+                + '\r\n' + 'sd240分辨率转码时长: ' + cdrsData.duration_sd240 + ' s'
+                + '\r\n' + 'sd480分辨率转码时长: ' + cdrsData.duration_sd480 + ' s'
+                + '\r\n' + 'sd720分辨率转码时长: ' + cdrsData.duration_sd720 + ' s'
+                + '\r\n' + 'HD分辨率转码时长: ' + cdrsData.duration_hd + ' s'
+                + '\r\n' + 'sd240分辨率copy模式封装时长: ' + cdrsData.duration_sd240_copy + ' s'
+                + '\r\n' + 'sd480分辨率copy模式封装时长: ' + cdrsData.duration_sd480_copy + ' s'
+                + '\r\n' + 'sd720分辨率copy模式封装时长: ' + cdrsData.duration_sd720_copy + ' s'
+                + '\r\n' + 'HD分辨率copy模式封装时长: ' + cdrsData.duration_hd_copy + ' s'
+                + '\r\n' + '总计使用存储大小: ' + cdrsData.file_size + ' s'
+                + '\r\n' + '总计存储的音视频和图片数量: ' + cdrsData.file_num + ' s'
+                + '\r\n' + 'API调用次数统计: ' + cdrsData.api_call_count );
+     }
+
+
+</script>
+
+
+
+<div hidden> b73b76ac5e2f0de7687fb57b5ad3ebac
+    <hr/>
+</div>
+<hr/>
+<strong><h3>消费明细查询</h3></strong>
+
+<div class="col-md-12">
+    <div class="col-md-6">
+        <div class="row-fluid">
+            <div class="span1">
+                <label>服务码</label>
+                <input type="service_code" class="form-control" id="txt_service_code" value="NENNZAXZ"></input>
+            </div>
+            <div class="span2">
+                <label>接口密钥</label>
+                <input type="password" class="form-control" id="txt_key" value="8bdf9897"></input>
+            </div>
+            <div class="span2">
+                <label>接口主机地址</label>
+                <input type="text" id="txt_address" class="form-control"  value="http://c.zhiboyun.com"></input>
+            </div>
+            <div class="span3">
+                <label>接口路径</label>
+                <input type="text" id="txt_uri" class="form-control" value="/api/20140928/management"></input>
+            </div>
+        </div>
+        <div class="span">
+            <label>接口调用参数</label>
+            <textarea class="form-control" id="txt_input_params" rows="10"  >{
+    "function": "sum_cdrs",
+    "params": {
+        "service_code": "NENNZAXZ",
+        "time_from": "2016-04-01",
+        "time_to": "2016-04-10"
+    }
+}</textarea>
+            <span class="help-block">请在上面输入框输入JSON格式的参数</span>
+            <button id="btn_call" class="btn btn-primary">提交</button>
+        </div>
+    </div>
+
+
+    <div class="col-md-6">
+
+            <div class="span">
+                <label id="label_res">API返回结果</label>
+                <textarea class="form-control" id="txt_output_result" readonly="true" style="width:90%" rows="25"></textarea>
+            </div>
+        <div id="label_err"></div>
+    </div>
+</div>
+
+<hr/>
+
+
+
+</div>
+<!-- /.col-lg-12 -->
+</div>
+
+<!-- /.row -->
+</div>
+
+<!-- /#page-wrapper -->
+</div>
+
+<!-- /#wrapper -->
+<!-- jQuery -->
+<!-- Bootstrap Core JavaScript -->
+<script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="/bower_components/metisMenu/dist/metisMenu.min.js"></script>
+
+<!-- DataTables JavaScript -->
+<script src="/bower_components/datatables/media/js/jquery.dataTables.min.js"></script>
+<script src="/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/dist/js/sb-admin-2.js"></script>
+
+<!-- Page-Level Demo Scripts - Tables - Use for reference -->
+<script>
+    $(document).ready(function() {
+        $('#dataTables-example').DataTable({
+            responsive: true
+        });
+    });
+</script>
+
+</body>
+
+
+
+
+
+</html>

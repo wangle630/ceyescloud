@@ -1,0 +1,152 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+<script type="text/javascript" src="/plugins/pickList/pickList.js"></script>
+<link href="/plugins/pickList/pickList.css" rel="stylesheet">
+<ol class="breadcrumb">
+    <li class="active">
+        <a type="button" id="btnNav" class="btn btn-default btn-sm  fa fa-dedent"  onclick="navShowHie()"></a>
+        <i class="fa fa-video-camera"></i>  <%= title %>
+    </li>
+</ol>
+
+<div id="data">
+<% if (rows) { %>
+    <div class="row">
+        <% rows.forEach(function (row) { %>
+        <div class="col-sm-3  " style="min-width:200px;height: 300px;">
+                        <% if (row.hashed_id) { %>
+                        <div id="<%- row.share_device_SN %>"  class="panel panel-green">
+                            <% } else { %>
+                            <div id="<%- row.share_device_SN %>"  class="panel panel-default">
+                                <% } %>
+                            <div class="panel-heading">
+                               <img src="/img/<%- row.share_device_type %>.png"  width="24">
+                                  <%- row.share_account_name %>的<%- row.share_device_type %>
+                            </div>
+
+                                <div class="panel-body">
+                                <b >设备名称:</b><%- row.share_device_Name %><hr />
+
+                                    <% if(row.state == 0){%>
+                                    <button  type="button" data-toggle="modal" onclick="loadShareData('<%- row.share_device_SN %>','<%- row.share_device_id %>')" data-target="#myModal" class="btn btn-outline btn-default" >共享</button>
+                               <% }if (row.hashed_id) { %>
+                                    <a href="/mylives/<%- row.share_device_SN %>" class="btn btn-outline btn-default" >远程指导</a>
+                                <% } else { %>
+                                        <!--<a href="" id="<%- row.share_device_SN %>a" class="btn btn-outline btn-default disabled" >远程指导</a>-->
+                                        <button   type="button" href="/mylives/<%- row.share_device_SN %>"  id="<%- row.share_device_SN %>a" class="btn btn-outline btn-default disabled" >远程指导</button>
+                                <% } %>
+
+                            </div>
+                            </div>
+                </div>
+            <% }) %>
+    </div>
+    </div>
+<% } %>
+</div>
+
+<script type="text/javascript">
+    $(function() {
+        /**
+         * 更改设备名称弹窗居中
+         */
+        $('.modal.fade').on('shown.bs.modal', function(){
+            var $this = $(this);
+            var $modal_dialog = $this.find('.modal-dialog');
+            var m_top = ( $(window).height() - $modal_dialog.height() )/2;
+            $modal_dialog.css({'margin': m_top + 'px auto'});
+        });
+    });
+    var pick ;
+    setInterval('refresh()',2000);
+    function  refresh(){
+        $.ajax({
+            type: 'GET',
+            url: 'mylives/refresh?'+new Date().getTime(),
+            success: function (dates) {
+                $(".panel.panel-green").attr('class','panel panel-default');
+                $('.panel-body a').remove();
+                $('.panel-body button ').show();
+                //$('.panel-body button').remove();
+               // var btn='<button type="button"  class="btn btn-outline btn-default disabled" >远程指导</button>';
+              /*  var btn='<a href="" class="btn btn-outline btn-default disabled" >远程指导</a>';
+                $('.panel-body').append(btn);*/
+                if(dates.length>0){
+                    for (var i=0;i<dates.length;i++)
+                    {
+                        $('#'+dates[i].sn+'a').hide();
+                        $('#'+dates[i].sn).attr('class','panel panel-green');
+                        var eleNew='<a href="/mylives/'+dates[i].sn+'" class="btn btn-outline btn-default" >远程指导</a>';
+                        if($('#'+dates[i].sn+' .panel-body a').length<=0){
+                            $('#'+dates[i].sn+' .panel-body').append(eleNew);
+                            $('#'+dates[i].sn+' .panel-body a').attr('class','btn btn-outline btn-default');
+                        }
+                    }
+                }
+            },
+            error: function () {
+            }
+        });
+    }
+    function loadShareData(sn,id){
+        $("#share").hide();
+        $("#ts").hide();
+        $("#device_SN").val(sn);
+        $("#device_id").val(id);
+
+         $.ajax({
+            type: 'GET',
+            url: '/myfriends/loadFriendsData?'+new Date().getTime(),
+             data:{
+              sn:sn
+             },
+            success: function (res) {
+                var json =  $.parseJSON(res);
+                if(pick)
+                    pick.close();
+                if(json.length > 0 ){
+                    $("#share").show();
+                    pick = $("#pickList").pickList({data: json});
+                }else{
+                    $("#ts").show();
+                }
+
+
+            },
+            error: function () {
+            }
+         });
+    }
+
+</script>
+
+<div class="modal fade col-sm-10" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header list-group-item active">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4   id="myModalLabel">共享</h4>
+            </div>
+            <form id="addRelFrom" action="/myfriends/videoshare" class="form-horizontal" method="post">
+                <div class="modal-body">
+                        <div id="pickList"></div>
+                    <div id="ts" class="server-data-content">
+                        暂无好友（好友在“我的好友”页面中添加）
+                    </div>
+                        <br><br>
+                        <input type="hidden" id="device_SN" name="device_SN" value="">
+                        <input type="hidden" id="device_id" name="device_id" value="">
+                    <input type="hidden" id = "pickids" name="pickids" value="">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                    <button type="submit" id="share" class="btn btn-primary" >共享</button>
+                </div>
+            </form>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<%- include footer %>

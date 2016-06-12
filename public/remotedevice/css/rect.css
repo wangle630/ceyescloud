@@ -1,0 +1,15 @@
+#active_box{
+    background:#CCFFFF;
+    border:2px solid #0099FF;
+    filter:alpha(opacity=30);
+    opacity:0.3;
+    position:absolute;
+}
+
+#keep_box{
+    background:#CCFFFF;
+    border:3px solid #0099FF;
+    filter:alpha(opacity=30);
+    opacity:0.5;
+    position:absolute;
+}

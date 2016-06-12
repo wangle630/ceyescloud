@@ -1,0 +1,57 @@
+<%- include header %>
+<%- include right_user%>
+<%- include left_nav%>
+<%- include flash %>
+<ol class="breadcrumb">
+
+    <li class="active">
+        <i class="fa fa-list"></i>  <%= title %>
+    </li>
+</ol>
+<div class="col-md-13">
+    <br />
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+            <thead >
+                <th>#</th>
+                <th>id</th>
+                <th>accountName</th>
+                <th>Password</th>
+                <th>email</th>
+                <th>accountType</th>
+                <th>state</th>
+                <th>操作</th>
+            </thead>
+
+            <tbody>
+                <% if (rows) { %>
+                <% rows.forEach(function (row) { %>
+                        <div>
+                        <tr>
+                        <th>#</th>
+                        <th><%- row.id.slice(0,4)+'...' %></th>
+                        <th><%- row.accountName %></th>
+                        <th><%- row.Password %></th>
+                        <th><%- row.email %></th>
+                        <th><%- row.accountType %></th>
+                        <th><%- row.state %></th>
+                        <th>
+                            <button type="button" class="btn btn-primary btn-circle"><i class="fa fa-check"></i>
+                            </button>
+                            <button type="button" class="btn btn-success btn-circle"><i class="fa fa-list"></i>
+                            </button>
+                            <button type="button" class="btn btn-info btn-circle"><i class="fa fa-link"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-circle"><i class="fa fa-times"></i>
+                            </button>
+
+                        </th>
+                        </tr>
+                        </div>
+                        <% }) %>
+                    <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<%- include footer%>
